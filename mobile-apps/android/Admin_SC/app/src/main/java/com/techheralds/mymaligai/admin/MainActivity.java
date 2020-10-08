@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void isEnvBuildRunning() {
-        String url = "https://us-central1-supplier-customer.cloudfunctions.net/app/isBuildEnvironmentRunning";
+        String url = "https://us-central1-my-maligai.cloudfunctions.net/app/isBuildEnvironmentRunning";
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -436,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://us-central1-supplier-customer.cloudfunctions.net/app/startBuildEnvironment")
+                .url("https://us-central1-my-maligai.cloudfunctions.net/app/startBuildEnvironment")
                 .post(requestBody)
                 .build();
 
@@ -470,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://us-central1-supplier-customer.cloudfunctions.net/app/waitBuildEnvironment")
+                .url("https://us-central1-my-maligai.cloudfunctions.net/app/waitBuildEnvironment")
                 .post(requestBody)
                 .build();
 
@@ -507,9 +507,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 MediaType mediaType = MediaType.parse("application/json");
-                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"supplier_id\" : \"" + currSupplierId + "\"\r\n}\r\n");
+                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"supplier_id\" : \"" + currSupplierId + ",\\r\\n \"build_type\":\"RELEASE\"\\r\\n" + "\"\r\n}\r\n");
                 Request request = new Request.Builder()
-                        .url("https://us-central1-supplier-customer.cloudfunctions.net/app/triggerSupplierBuild")
+                        .url("https://us-central1-my-maligai.cloudfunctions.net/app/triggerSupplierBuild")
                         .method("POST", body)
                         .addHeader("Content-Type", "application/json")
                         .build();
@@ -563,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://us-central1-supplier-customer.cloudfunctions.net/app/stopBuildEnvironment")
+                .url("https://us-central1-my-maligai.cloudfunctions.net/app/stopBuildEnvironment")
                 .post(requestBody)
                 .build();
 
