@@ -11,7 +11,7 @@ const os = require('os');
 
 // The Firebase Admin SDK to access Cloud Firestore.
 const admin = require('firebase-admin');
-var env =  "supplier-customer";
+var env =  "my-maligai";
 if(process.env.GCLOUD_PROJECT !== undefined) {
   env =  process.env.GCLOUD_PROJECT;
 }
@@ -19,7 +19,7 @@ const { parseRequestAndDownloadFiles } = require('./lib/downloadFiles.js');
 const { processSupplierInventoryFiles } = require('./lib/processInventoryFile.js');
 const { startVMInstance, waitForVMInstance, stopVMInstance, waitForBuildToComplete, isVMUpAdRunning, triggerSupplierBuildRequest  } = require('./lib/gcpinstancehandler.js');
 
-const development = (env === "supplier-customer")
+const development = (env === "my-maligai")
 const credFile = env + "-service-account.json"
 const database = "https://" + env + ".firebaseio.com/"; 
 const bucket_name = env + ".appspot.com";

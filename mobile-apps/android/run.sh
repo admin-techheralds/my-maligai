@@ -65,11 +65,11 @@ build_app() {
         ls -alh ./app/
     fi
 
-    echo "Decoding the google-services.json details...from file:google-services-${buildType}.json"
-    cat google-services-${buildType}.json | base64 --decode > ./app/google-services.json
+    echo "Decoding the google-services.json details...from file:${HOME}/mymaligai-build/google-services-${buildType}.json"
+    cat ${HOME}/mymaligai-build/google-services-${buildType}.json | base64 --decode > ./app/google-services.json
     
-    #echo "Decoded content is:"
-    #cat ./app/google-services.json
+    echo "Decoded content is:"
+    cat ./app/google-services.json
 
     ./gradlew assemble${buildType}
 
