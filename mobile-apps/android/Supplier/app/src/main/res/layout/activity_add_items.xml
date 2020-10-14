@@ -7,7 +7,7 @@
     android:background="#fff"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context="com.techheralds.mymaligai.supplier.AddItemsActivity">
+    tools:context="com.techheralds.mymaligai.prod.supplier.AddItemsActivity">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
