@@ -507,48 +507,57 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 MediaType mediaType = MediaType.parse("application/json");
-                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"supplier_id\" : \"" + currSupplierId + ",\\r\\n \"build_type\":\"RELEASE\"\\r\\n" + "\"\r\n}\r\n");
-                Request request = new Request.Builder()
-                        .url("https://us-central1-my-maligai.cloudfunctions.net/app/triggerSupplierBuild")
-                        .method("POST", body)
-                        .addHeader("Content-Type", "application/json")
-                        .build();
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("supplier_id",currSupplierId);
+                    jsonObject.put("build_type","Release");
 
-                client.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        Looper.prepare();
-                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                    RequestBody body = RequestBody.create(mediaType, String.valueOf(jsonObject));
+                    Request request = new Request.Builder()
+                            .url("https://us-central1-my-maligai.cloudfunctions.net/app/triggerSupplierBuild")
+                            .method("POST", body)
+                            .addHeader("Content-Type", "application/json")
+                            .build();
 
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        if (response.isSuccessful()) {
-                            final String myResponse = response.body().string();
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        JSONObject jsonObject = new JSONObject(myResponse);
-                                        String status = jsonObject.get("status").toString();
-
-                                        if (status.equalsIgnoreCase("success")) {
-                                            buildingSts = "APK build started.Creating an APK...";
-                                        } else if (status.equalsIgnoreCase("inprogress")) {
-                                            buildingSts = "APK building in progress...";
-                                        } else if (status.equalsIgnoreCase("completed")) {
-                                            buildingSts = "APK build successful.You can share link via SMS";
-                                            stopBuildEnv();
-                                            handler.removeMessages(0);
-                                        }
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Looper.prepare();
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-                    }
-                });
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (response.isSuccessful()) {
+                                final String myResponse = response.body().string();
+                                MainActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            JSONObject jsonObject = new JSONObject(myResponse);
+                                            String status = jsonObject.get("status").toString();
+
+                                            if (status.equalsIgnoreCase("success")) {
+                                                buildingSts = "APK build started.Creating an APK...";
+                                            } else if (status.equalsIgnoreCase("inprogress")) {
+                                                buildingSts = "APK building in progress...";
+                                            } else if (status.equalsIgnoreCase("completed")) {
+                                                buildingSts = "APK build successful.You can share link via SMS";
+                                                stopBuildEnv();
+                                                handler.removeMessages(0);
+                                            }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 handler.postDelayed(this, seconds);
             }
 
