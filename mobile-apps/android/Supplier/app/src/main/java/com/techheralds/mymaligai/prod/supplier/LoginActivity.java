@@ -228,7 +228,7 @@ public class LoginActivity extends AppCompatActivity {
     public void checkSupplier(String encodedString) {
         final ProgressDialog dialog = ProgressDialog.show(LoginActivity.this, "",
                 "Checking Supplier.Please wait...", true);
-        String url = "https://us-central1-supplier-customer.cloudfunctions.net/app/checkSupplierExists?phonenumber=" + encodedString;
+        String url = "https://us-central1-my-maligai.cloudfunctions.net/app/checkSupplierExists?phonenumber=" + encodedString;
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url(url)
