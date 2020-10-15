@@ -17,16 +17,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name="com.techheralds.mymaligai.supplier.DemandViewActivity"></activity>
-        <activity android:name="com.techheralds.mymaligai.supplier.InvitedCustomersActivity" />
-        <activity android:name="com.techheralds.mymaligai.supplier.InviteActivity" />
-        <activity android:name="com.techheralds.mymaligai.supplier.AddItemsActivity" />
-        <activity android:name="com.techheralds.mymaligai.supplier.SetupActivity" />
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.DemandViewActivity"></activity>
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.InvitedCustomersActivity" />
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.InviteActivity" />
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.AddItemsActivity" />
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.SetupActivity" />
         <activity
-            android:name="com.techheralds.mymaligai.supplier.MainActivity"
+            android:name="com.techheralds.mymaligai.prod.supplier.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name="com.techheralds.mymaligai.supplier.LoginActivity">
+        <activity android:name="com.techheralds.mymaligai.prod.supplier.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
