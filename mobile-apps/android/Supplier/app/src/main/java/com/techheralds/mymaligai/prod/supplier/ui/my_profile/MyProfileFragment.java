@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.supplier.ui.my_profile;
+package com.techheralds.mymaligai.prod.supplier.ui.my_profile;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;

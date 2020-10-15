@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.supplier.ui.demands_report;
+package com.techheralds.mymaligai.prod.supplier.ui.demands_report;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;

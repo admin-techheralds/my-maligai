@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.supplier.ui.manage_consumers;
+package com.techheralds.mymaligai.prod.supplier.ui.manage_consumers;
 
 import android.Manifest;
 import android.app.Activity;

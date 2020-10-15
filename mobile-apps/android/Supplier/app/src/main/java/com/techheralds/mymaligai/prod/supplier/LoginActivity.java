@@ -236,6 +236,7 @@ public class LoginActivity extends AppCompatActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                Looper.prepare();
                 Toast.makeText(LoginActivity.this, "fail", Toast.LENGTH_SHORT).show();
             }
 
