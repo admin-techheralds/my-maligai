@@ -33,6 +33,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 import com.techheralds.mymaligai.prod.customer.R;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -247,9 +249,10 @@ public class OrderViewActivity extends AppCompatActivity {
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public View getView(int position, View view, ViewGroup parent) {
-            view = LayoutInflater.from(context).inflate(R.layout.demand_item_list, parent, false);
+            view = LayoutInflater.from(context).inflate(R.layout.orders_view_list, parent, false);
             TextView itemName = view.findViewById(R.id.itemName);
             TextView itemQuantity = view.findViewById(R.id.itemQuantity);
+            TextView count = view.findViewById(R.id.itemSelectedCount);
             ImageView itemImg = view.findViewById(R.id.itemImg);
 
             if (items.get(position).get("img") != null) {
@@ -269,6 +272,7 @@ public class OrderViewActivity extends AppCompatActivity {
             }
             String moneyString = formatter.format(price);
             itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
+            count.setText(items.get(position).get("count").toString());
             return view;
         }
     }

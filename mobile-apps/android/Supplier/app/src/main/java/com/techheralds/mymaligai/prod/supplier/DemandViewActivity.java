@@ -572,6 +572,7 @@ public class DemandViewActivity extends AppCompatActivity {
             TextView itemName = view.findViewById(R.id.itemName);
             TextView itemQuantity = view.findViewById(R.id.itemQuantity);
             ImageView itemImg = view.findViewById(R.id.itemImg);
+            TextView countText = view.findViewById(R.id.itemSelectedCount);
 
             if (items.get(position).get("img") != null) {
                 if (!items.get(position).get("img").equals("")) {
@@ -590,6 +591,7 @@ public class DemandViewActivity extends AppCompatActivity {
             }
             String moneyString = formatter.format(price);
             itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
+            countText.setText(items.get(position).get("count").toString());
             return view;
         }
     }

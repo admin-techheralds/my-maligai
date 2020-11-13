@@ -30,13 +30,29 @@
             android:singleLine="true" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:ignore="MissingConstraints">
+
+        <EditText
+            android:id="@+id/address"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Delivery Address"
+            android:singleLine="false"
+            android:maxLines="3"
+            android:lines="2"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
     <LinearLayout
-        android:visibility="gone"
         android:id="@+id/consumerTagsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        >
+        android:visibility="gone">
 
         <TextView
             android:layout_width="match_parent"
@@ -54,9 +70,9 @@
 
         <TextView
             android:id="@+id/selectedTags"
-            android:textStyle="bold"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

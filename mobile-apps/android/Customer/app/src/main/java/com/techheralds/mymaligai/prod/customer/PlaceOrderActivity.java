@@ -30,6 +30,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -50,6 +51,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 import com.techheralds.mymaligai.prod.customer.R;
 
+import org.w3c.dom.Text;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,6 +66,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import jxl.Image;
 
 public class PlaceOrderActivity extends AppCompatActivity {
     String supplierUid, supplierName, supplierPhoneNumber, supplierDp;
@@ -90,7 +94,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
     Context ctx = this;
     ArrayList<String> unitsArr[];
     ArrayList<Double> multiplyFactorArr[];
-    ArrayList<Map<String, Object>> demandsArr, tempDemandsArr;
+    ArrayList<Map<String, Object>> demandsArr, tempDemandsArr, arrtoFindIndex;
     ArrayList<Integer> spinnerPoitions;
     TextView textCartItemCount;
     int mCartItemCount = 0;
@@ -98,6 +102,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
     double totalAmount = 0.0;
     itemsAdapterList itemsAdapterList;
     SearchView searchView;
+    BottomSheetDialog bottomSheetDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +128,9 @@ public class PlaceOrderActivity extends AppCompatActivity {
         for (int i = 0; i < 5; i++) {
             multiplyFactorArr[i] = new ArrayList<>();
         }
+
+        bottomSheetDialog = new BottomSheetDialog(PlaceOrderActivity.this);
+        bottomSheetDialog.setContentView(R.layout.demand_item_sheet);
 
         // Big in grams
         unitsArr[0].add("250g");
@@ -218,6 +226,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
         demandsArr = new ArrayList<>();
         tempDemandsArr = new ArrayList<>();
+        arrtoFindIndex = new ArrayList<>();
 
         mYear = Calendar.getInstance().get(Calendar.YEAR);
         mMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
@@ -486,7 +495,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                     if (!deliveryAddress.equals("")) {
                                         final ProgressDialog progressDialog = ProgressDialog.show(PlaceOrderActivity.this, null, "Placing Order.Please Wait...");
                                         final String key = firebaseDatabase.getReference().child("demands").push().getKey();
-                                        demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, key,deliveryAddress, totalAmount,"cod");
+                                        demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, key, deliveryAddress, totalAmount, "cod");
                                         firebaseDatabase.getReference().child("demands/" + key).setValue(newDemand).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
@@ -523,8 +532,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
             case R.id.action_cart:
                 if (mCartItemCount > 0) {
-                    BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(PlaceOrderActivity.this);
-                    bottomSheetDialog.setContentView(R.layout.demand_item_sheet);
+
                     TextView priceText = bottomSheetDialog.findViewById(R.id.totalPrice);
                     TextView header = bottomSheetDialog.findViewById(R.id.header);
                     header.setText("Items in Cart");
@@ -574,7 +582,6 @@ public class PlaceOrderActivity extends AppCompatActivity {
         }
         return date1;
     }
-
 
     private void show_Datepicker() {
         c = Calendar.getInstance();
@@ -679,12 +686,14 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 ImageView itemImg = view.findViewById(R.id.itemImg);
                 TextView itemName = view.findViewById(R.id.itemName);
                 final TextView itemPrice = view.findViewById(R.id.itemPrice);
-                final Button itemBtn = view.findViewById(R.id.itemBtn);
-                final Spinner qunatitySpinner = view.findViewById(R.id.itemQunatitySpinner);
+                final ImageButton addItemBtn = view.findViewById(R.id.addItemBtn);
+                final ImageButton minusItemBtn = view.findViewById(R.id.minusItemBtn);
+                final TextView countText = view.findViewById(R.id.itemSelectedCount);
+                final Spinner quantitySpinner = view.findViewById(R.id.itemquantitySpinner);
                 final String[] currSpinnerValue = {unitsArr[inventories.get(position).getQuantity_type()].get(0)};
                 final double[] currItemPrice = {0};
 
-                if(inventories.get(position).getImg() != null){
+                if (inventories.get(position).getImg() != null) {
                     if (!inventories.get(position).getImg().equals("")) {
                         Picasso.with(PlaceOrderActivity.this).load(inventories.get(position).getImg()).into(itemImg);
                     }
@@ -693,55 +702,49 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 itemName.setText(capitalize(inventories.get(position).getName()));
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(PlaceOrderActivity.this, R.layout.support_simple_spinner_dropdown_item, unitsArr[inventories.get(position).getQuantity_type()]);
-                qunatitySpinner.setAdapter(adapter);
+                quantitySpinner.setAdapter(adapter);
 
-                qunatitySpinner.setSelection(spinnerPoitions.get(position));
+                quantitySpinner.setSelection(spinnerPoitions.get(position));
 
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("name", inventories.get(position).getName());
-                data.put("quantity", qunatitySpinner.getSelectedItem().toString());
+                data.put("quantity", quantitySpinner.getSelectedItem().toString());
                 data.put("img", inventories.get(position).getImg());
-                data.put("sku",inventories.get(position).getSku());
-                data.put("price", multiplyFactorArr[inventories.get(position).getQuantity_type()].get(qunatitySpinner.getSelectedItemPosition()) * inventories.get(position).getPrice());
-                if (demandsArr.indexOf(data) > -1) {
-                    itemBtn.setBackgroundColor(Color.parseColor("#f04141"));
-                    itemBtn.setText("Remove from Cart");
+                data.put("sku", inventories.get(position).getSku());
+                int i = arrtoFindIndex.indexOf(data);
+                if (i > -1) {
+                    countText.setText(demandsArr.get(i).get("count").toString());
                 }
 
-                qunatitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                quantitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int sPosition, long id) {
-                        spinnerPoitions.set(position, qunatitySpinner.getSelectedItemPosition());
+                        spinnerPoitions.set(position, quantitySpinner.getSelectedItemPosition());
                         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
                         double price = multiplyFactorArr[inventories.get(position).getQuantity_type()].get(sPosition) * inventories.get(position).getPrice();
                         String moneyString = formatter.format(price);
                         itemPrice.setText("MRP: " + moneyString);
 
+                        //   countText.setText();
+
                         Map<String, Object> data = new HashMap<>();
                         data.put("name", inventories.get(position).getName());
-                        data.put("quantity", currSpinnerValue[0]);
-                        data.put("price", currItemPrice[0]);
-                        data.put("sku",inventories.get(position).getSku());
+                        data.put("quantity", quantitySpinner.getSelectedItem());
+                        data.put("sku", inventories.get(position).getSku());
                         data.put("img", inventories.get(position).getImg());
 
-                        if (!currSpinnerValue[0].equals(qunatitySpinner.getSelectedItem())) {
-                            if (demandsArr.indexOf(data) > -1) {
-                                totalAmount = totalAmount - currItemPrice[0];
-                                demandsArr.remove(data);
-                                mCartItemCount = demandsArr.size();
-                                setupBadge();
-                                itemBtn.setBackgroundColor(Color.parseColor("#008577"));
-                                itemBtn.setText("Add to Cart");
-                            }
-                        } else {
-                            if (demandsArr.indexOf(data) > -1) {
-                                itemBtn.setBackgroundColor(Color.parseColor("#f04141"));
-                                itemBtn.setText("Remove from Cart");
+                        int i = arrtoFindIndex.indexOf(data);
+
+                        if (!currSpinnerValue[0].equals(quantitySpinner.getSelectedItem())) {
+                            if (i == -1) {
+                                countText.setText("0");
+                            } else {
+                                countText.setText(demandsArr.get(i).get("count").toString());
                             }
                         }
-                        currSpinnerValue[0] = (String) qunatitySpinner.getSelectedItem();
+                        currSpinnerValue[0] = (String) quantitySpinner.getSelectedItem();
                         currItemPrice[0] = price;
                     }
 
@@ -751,32 +754,88 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     }
                 });
 
-                itemBtn.setOnClickListener(new View.OnClickListener() {
+                addItemBtn.setOnClickListener(new View.OnClickListener() {
                     @SuppressLint("ResourceAsColor")
                     @Override
                     public void onClick(View v) {
 
+                        Map<String, Object> temp = new HashMap<>();
+                        temp.put("name", inventories.get(position).getName());
+                        temp.put("quantity", quantitySpinner.getSelectedItem().toString());
+                        temp.put("img", inventories.get(position).getImg());
+                        temp.put("sku", inventories.get(position).getSku());
+
                         Map<String, Object> data = new HashMap<>();
                         data.put("name", inventories.get(position).getName());
-                        data.put("quantity", qunatitySpinner.getSelectedItem().toString());
+                        data.put("quantity", quantitySpinner.getSelectedItem().toString());
                         data.put("img", inventories.get(position).getImg());
-                        data.put("price", currItemPrice[0]);
-                        data.put("sku",inventories.get(position).getSku());
-                        if (demandsArr.indexOf(data) == -1) {
-                            totalAmount = totalAmount + currItemPrice[0];
+                        data.put("sku", inventories.get(position).getSku());
+
+                        int count = Integer.parseInt(countText.getText().toString()) + 1;
+
+                        countText.setText(String.valueOf(count));
+
+                        int i = arrtoFindIndex.indexOf(temp);
+
+                        // Toast.makeText(PlaceOrderActivity.this, "I "+i, Toast.LENGTH_SHORT).show();
+
+                        data.put("count", count);
+                        data.put("price", currItemPrice[0] * count);
+                        totalAmount = totalAmount + currItemPrice[0];
+                        if (i == -1) {
                             demandsArr.add(data);
-                            itemBtn.setBackgroundColor(Color.parseColor("#f04141"));
-                            itemBtn.setText("Remove from Cart");
+                            arrtoFindIndex.add(temp);
                         } else {
-                            totalAmount = totalAmount - currItemPrice[0];
-                            demandsArr.remove(data);
-                            itemBtn.setBackgroundColor(Color.parseColor("#008577"));
-                            itemBtn.setText("Add to Cart");
+                            demandsArr.set(i, data);
+                            arrtoFindIndex.set(i, temp);
                         }
 
                         mCartItemCount = demandsArr.size();
                         setupBadge();
 
+                    }
+                });
+
+                minusItemBtn.setOnClickListener(new View.OnClickListener() {
+                    @SuppressLint("ResourceAsColor")
+                    @Override
+                    public void onClick(View v) {
+
+                        Map<String, Object> temp = new HashMap<>();
+                        temp.put("name", inventories.get(position).getName());
+                        temp.put("quantity", quantitySpinner.getSelectedItem().toString());
+                        temp.put("img", inventories.get(position).getImg());
+                        temp.put("sku", inventories.get(position).getSku());
+
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("name", inventories.get(position).getName());
+                        data.put("quantity", quantitySpinner.getSelectedItem().toString());
+                        data.put("img", inventories.get(position).getImg());
+                        data.put("sku", inventories.get(position).getSku());
+
+                        if (Integer.parseInt(countText.getText().toString()) > 0) {
+                            int count = Integer.parseInt(countText.getText().toString()) - 1;
+
+                            countText.setText(String.valueOf(count));
+
+                            int i = arrtoFindIndex.indexOf(temp);
+
+                            data.put("price", currItemPrice[0] * count);
+                            if (count == 0) {
+                                data.put("count", count);
+                                totalAmount = totalAmount - currItemPrice[0];
+                                demandsArr.remove(i);
+                                arrtoFindIndex.remove(i);
+                            } else {
+                                data.put("count", count);
+                                totalAmount = totalAmount - currItemPrice[0];
+                                demandsArr.set(i, data);
+                                arrtoFindIndex.set(i, temp);
+                            }
+
+                            mCartItemCount = demandsArr.size();
+                            setupBadge();
+                        }
                     }
                 });
             }
@@ -847,13 +906,18 @@ public class PlaceOrderActivity extends AppCompatActivity {
             return 0;
         }
 
+        @SuppressLint({"ViewHolder", "SetTextI18n"})
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public View getView(final int position, View view, ViewGroup parent) {
             view = LayoutInflater.from(context).inflate(R.layout.demand_item_list, parent, false);
             TextView itemName = view.findViewById(R.id.itemName);
             TextView itemQuantity = view.findViewById(R.id.itemQuantity);
+            final TextView countText = view.findViewById(R.id.itemSelectedCount);
             ImageView itemImg = view.findViewById(R.id.itemImg);
+            ImageButton addItemBtn = view.findViewById(R.id.addItemBtn);
+            ImageButton minusItemBtn = view.findViewById(R.id.minusItemBtn);
+
 
             if (items.get(position).get("img") != null) {
                 if (!items.get(position).get("img").equals("")) {
@@ -861,14 +925,128 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 }
             }
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
-            double price = ((double) items.get(position).get("price"));
+            final double price = ((double) items.get(position).get("price"));
             String moneyString = formatter.format(price);
             itemName.setText(capitalize(items.get(position).get("name").toString()));
             itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
+            countText.setText(items.get(position).get("count").toString());
+
+            addItemBtn.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("ResourceAsColor")
+                @Override
+                public void onClick(View v) {
+
+                    Map<String, Object> temp = new HashMap<>();
+                    temp.put("name", items.get(position).get("name"));
+                    temp.put("quantity", items.get(position).get("quantity"));
+                    temp.put("img", items.get(position).get("img"));
+                    temp.put("sku", items.get(position).get("sku"));
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("name", items.get(position).get("name"));
+                    data.put("quantity", items.get(position).get("quantity"));
+                    data.put("img", items.get(position).get("img"));
+                    data.put("sku", items.get(position).get("sku"));
+
+                    int count = Integer.parseInt(countText.getText().toString()) + 1;
+                    int divider = Integer.parseInt(countText.getText().toString());
+
+                    countText.setText(String.valueOf(count));
+
+                    int i = arrtoFindIndex.indexOf(temp);
+
+                    double price = Double.parseDouble(items.get(position).get("price").toString()) / divider;
+
+                    data.put("count", count);
+                    data.put("price", price * count);
+                    totalAmount = totalAmount + price;
+                    if (i == -1) {
+                        demandsArr.add(data);
+                        items.add(data);
+                        arrtoFindIndex.add(temp);
+                    } else {
+                        demandsArr.set(i, data);
+                        items.set(i, data);
+                        arrtoFindIndex.set(i, temp);
+                    }
+
+                    mCartItemCount = demandsArr.size();
+                    setupBadge();
+
+                    updatePriceInCartView();
+
+                    itemsAdapterList.notifyDataSetChanged();
+
+                    inventoryAdapterList.notifyDataSetChanged();
+                }
+            });
+
+            minusItemBtn.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("ResourceAsColor")
+                @Override
+                public void onClick(View v) {
+
+                    Map<String, Object> temp = new HashMap<>();
+                    temp.put("name", items.get(position).get("name"));
+                    temp.put("quantity", items.get(position).get("quantity"));
+                    temp.put("img", items.get(position).get("img"));
+                    temp.put("sku", items.get(position).get("sku"));
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("name", items.get(position).get("name"));
+                    data.put("quantity", items.get(position).get("quantity"));
+                    data.put("img", items.get(position).get("img"));
+                    data.put("sku", items.get(position).get("sku"));
+
+                    if (Integer.parseInt(countText.getText().toString()) > 0) {
+                        int count = Integer.parseInt(countText.getText().toString()) - 1;
+                        int divider = Integer.parseInt(countText.getText().toString());
+                        countText.setText(String.valueOf(count));
+
+                        int i = arrtoFindIndex.indexOf(temp);
+                        double price = Double.parseDouble(items.get(position).get("price").toString()) / divider;
+
+                        data.put("price", price * count);
+                        if (count == 0) {
+                            data.put("count", count);
+                            totalAmount = totalAmount - price;
+                            demandsArr.remove(i);
+//                            items.remove(i);
+                            arrtoFindIndex.remove(i);
+                        } else {
+                            data.put("count", count);
+                            totalAmount = totalAmount - price;
+                            demandsArr.set(i, data);
+                            items.set(i, data);
+                            arrtoFindIndex.set(i, temp);
+                        }
+
+                        mCartItemCount = demandsArr.size();
+                        setupBadge();
+
+                        updatePriceInCartView();
+
+                        if (demandsArr.size() == 0) {
+                            bottomSheetDialog.dismiss();
+                        }
+                    }
+
+                    itemsAdapterList.notifyDataSetChanged();
+
+                    inventoryAdapterList.notifyDataSetChanged();
+                }
+            });
 
             return view;
         }
     }
 
-
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void updatePriceInCartView() {
+        TextView priceText = bottomSheetDialog.findViewById(R.id.totalPrice);
+        NumberFormat formatter1 = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        double price1 = totalAmount;
+        String moneyString1 = formatter1.format(price1);
+        priceText.setText("Total MRP: " + moneyString1);
+    }
 }

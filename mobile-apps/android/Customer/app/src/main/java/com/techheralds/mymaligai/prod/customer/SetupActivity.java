@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -47,7 +48,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SetupActivity extends AppCompatActivity {
     CircleImageView userDp;
     String userType;
-    EditText tagsEditText, userName;
+    EditText tagsEditText, userName, address;
     Button selectTagBtn;
     LinearLayout supplierLayout;
     Button doneBtn;
@@ -79,6 +80,7 @@ public class SetupActivity extends AppCompatActivity {
         tagsSelected = new ArrayList<>();
 
         userName = findViewById(R.id.userName);
+        address = findViewById(R.id.address);
         userDp = findViewById(R.id.userDp);
         doneBtn = findViewById(R.id.doneBtn);
         selectTagBtn = findViewById(R.id.selectTagBtn);
@@ -168,7 +170,8 @@ public class SetupActivity extends AppCompatActivity {
     private void uploadData() {
         final ProgressDialog progressDialog = ProgressDialog.show(SetupActivity.this, "", "Setting up Profile.Please wait...");
         final FirebaseUser user = firebaseAuth.getCurrentUser();
-        final String name = userName.getText().toString();
+        final String name = userName.getText().toString().trim();
+        final String delivery_address = address.getText().toString().trim();
 
 
         if (profileUri != null) {
@@ -192,7 +195,13 @@ public class SetupActivity extends AppCompatActivity {
 
                             user.updateProfile(profileUpdates);
 
-                            Customer newUser = new Customer(name, uri.toString(), user.getUid(), user.getPhoneNumber(),"");
+                            //Save delivery address locally
+                            SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("address", delivery_address);
+                            editor.apply();
+
+                            Customer newUser = new Customer(name, uri.toString(), user.getUid(), user.getPhoneNumber(), delivery_address);
                             firebaseDatabase.getReference().child("customers/" + user.getUid()).setValue(newUser).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
@@ -232,7 +241,7 @@ public class SetupActivity extends AppCompatActivity {
             user.updateProfile(profileUpdates);
 
 
-            Customer newUser = new Customer(name, "", user.getUid(), user.getPhoneNumber(),"");
+            Customer newUser = new Customer(name, "", user.getUid(), user.getPhoneNumber(), "");
             firebaseDatabase.getReference().child("customers/" + user.getUid()).setValue(newUser).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
