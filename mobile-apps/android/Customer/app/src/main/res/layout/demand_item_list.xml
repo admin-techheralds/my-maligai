@@ -39,6 +39,7 @@
             android:text="250g"
             android:textStyle="bold" />
         <LinearLayout
+            android:id="@+id/counterLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
@@ -52,7 +53,7 @@
                 android:layout_gravity="right"
                 android:padding="10dp"
                 android:src="@drawable/minus_item"
-                android:background="@drawable/border"
+                android:background="@drawable/transparent_bg"
                 />
 
             <TextView
@@ -73,7 +74,7 @@
                 android:layout_gravity="right"
                 android:padding="10dp"
                 android:src="@drawable/add_item"
-                android:background="@drawable/border"
+                android:background="@drawable/transparent_bg"
                 />
         </LinearLayout>
     </LinearLayout>

@@ -32,6 +32,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Spinner;
@@ -692,6 +693,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 final Spinner quantitySpinner = view.findViewById(R.id.itemquantitySpinner);
                 final String[] currSpinnerValue = {unitsArr[inventories.get(position).getQuantity_type()].get(0)};
                 final double[] currItemPrice = {0};
+                final LinearLayout counterLayout = view.findViewById(R.id.counterLayout);
 
                 if (inventories.get(position).getImg() != null) {
                     if (!inventories.get(position).getImg().equals("")) {
@@ -717,6 +719,14 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     countText.setText(demandsArr.get(i).get("count").toString());
                 }
 
+                final int count = Integer.parseInt(countText.getText().toString());
+
+                if (count > 0) {
+                    counterLayout.setBackgroundResource(R.drawable.green_border);
+                } else {
+                    counterLayout.setBackgroundResource(R.drawable.border);
+                }
+
                 quantitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
@@ -740,8 +750,10 @@ public class PlaceOrderActivity extends AppCompatActivity {
                         if (!currSpinnerValue[0].equals(quantitySpinner.getSelectedItem())) {
                             if (i == -1) {
                                 countText.setText("0");
+                                counterLayout.setBackgroundResource(R.drawable.border);
                             } else {
                                 countText.setText(demandsArr.get(i).get("count").toString());
+                                counterLayout.setBackgroundResource(R.drawable.green_border);
                             }
                         }
                         currSpinnerValue[0] = (String) quantitySpinner.getSelectedItem();
@@ -777,8 +789,6 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
                         int i = arrtoFindIndex.indexOf(temp);
 
-                        // Toast.makeText(PlaceOrderActivity.this, "I "+i, Toast.LENGTH_SHORT).show();
-
                         data.put("count", count);
                         data.put("price", currItemPrice[0] * count);
                         totalAmount = totalAmount + currItemPrice[0];
@@ -789,6 +799,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
                             demandsArr.set(i, data);
                             arrtoFindIndex.set(i, temp);
                         }
+
+                        counterLayout.setBackgroundResource(R.drawable.green_border);
 
                         mCartItemCount = demandsArr.size();
                         setupBadge();
@@ -835,7 +847,12 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
                             mCartItemCount = demandsArr.size();
                             setupBadge();
+
+                            if (count == 0) {
+                                counterLayout.setBackgroundResource(R.drawable.border);
+                            }
                         }
+
                     }
                 });
             }
@@ -917,7 +934,15 @@ public class PlaceOrderActivity extends AppCompatActivity {
             ImageView itemImg = view.findViewById(R.id.itemImg);
             ImageButton addItemBtn = view.findViewById(R.id.addItemBtn);
             ImageButton minusItemBtn = view.findViewById(R.id.minusItemBtn);
+            final LinearLayout counterLayout = view.findViewById(R.id.counterLayout);
 
+            int count = ((int) items.get(position).get("count"));
+
+            if (count > 0) {
+                counterLayout.setBackgroundResource(R.drawable.green_border);
+            } else {
+                counterLayout.setBackgroundResource(R.drawable.border);
+            }
 
             if (items.get(position).get("img") != null) {
                 if (!items.get(position).get("img").equals("")) {
@@ -974,6 +999,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     setupBadge();
 
                     updatePriceInCartView();
+
+                    counterLayout.setBackgroundResource(R.drawable.green_border);
 
                     itemsAdapterList.notifyDataSetChanged();
 
