@@ -138,7 +138,9 @@ public class InvitesFragment extends Fragment {
             firebaseDatabase.getReference().child("cInvites/" + firebaseUser.getPhoneNumber() + "/" + suppliers.get(position).getUid() + "/invited_date").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    date.setText("Invited on: "+dataSnapshot.getValue().toString());
+                    if (dataSnapshot.getChildrenCount() > 0) {
+                        date.setText("Invited on: " + dataSnapshot.getValue().toString());
+                    }
                 }
 
                 @Override
@@ -162,7 +164,7 @@ public class InvitesFragment extends Fragment {
                     LocalDateTime now = LocalDateTime.now();
                     Map<String, Object> data = new HashMap<>();
                     data.put("status", "Accepted");
-                    data.put("accepted_date",dtf.format(now));
+                    data.put("accepted_date", dtf.format(now));
                     firebaseDatabase.getReference().child("sInvites/" + suppliers.get(position).getUid() + "/" + firebaseUser.getPhoneNumber()).updateChildren(data).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
