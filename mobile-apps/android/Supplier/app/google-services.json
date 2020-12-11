@@ -1,0 +1,194 @@
+{
+  "project_info": {
+    "project_number": "926430807391",
+    "firebase_url": "https://my-maligai.firebaseio.com",
+    "project_id": "my-maligai",
+    "storage_bucket": "my-maligai.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926430807391:android:def74e0d6b33bf8f2ba2ea",
+        "android_client_info": {
+          "package_name": "com.techheralds.mymaligai.prod.admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "926430807391-5l442nkn74j92gepvlp36vpmci0g1bb9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.admin",
+            "certificate_hash": "84e9349e8fe644ece2537d97ec4b74a86beb37cf"
+          }
+        },
+        {
+          "client_id": "926430807391-k7fe60oq69ilc8loa1dreus0b5g5fk4m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.admin",
+            "certificate_hash": "8a5540fc888a96e508f7d472c52eca66f62ad628"
+          }
+        },
+        {
+          "client_id": "926430807391-o2q2tt90kndh1ha94hveav3qn771l9s8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.admin",
+            "certificate_hash": "a96728e804cf76ad7a46814d420b004577d95437"
+          }
+        },
+        {
+          "client_id": "926430807391-sv4o0i2fi86ilnka600c8m4lhe9mg9gg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.admin",
+            "certificate_hash": "a113f725e62e82d8830664a231dc1c8c443c2153"
+          }
+        },
+        {
+          "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl2pxVfym2eKE3Pb9BPTidgLPqngUAu3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926430807391:android:1c8371120cf176512ba2ea",
+        "android_client_info": {
+          "package_name": "com.techheralds.mymaligai.prod.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "926430807391-1nvv85j6ofp0s67htfrvavpcau8letjp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.customer",
+            "certificate_hash": "a113f725e62e82d8830664a231dc1c8c443c2153"
+          }
+        },
+        {
+          "client_id": "926430807391-1ph77l7hnj07h4cn9hd4lh8p4d3h7ti7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.customer",
+            "certificate_hash": "84e9349e8fe644ece2537d97ec4b74a86beb37cf"
+          }
+        },
+        {
+          "client_id": "926430807391-78gl3l18b9v6taljaupiopuj2lkvp53a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.customer",
+            "certificate_hash": "a96728e804cf76ad7a46814d420b004577d95437"
+          }
+        },
+        {
+          "client_id": "926430807391-ue139s8e5e354f7u8t2l7fu3d48rpmvl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.customer",
+            "certificate_hash": "8a5540fc888a96e508f7d472c52eca66f62ad628"
+          }
+        },
+        {
+          "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl2pxVfym2eKE3Pb9BPTidgLPqngUAu3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926430807391:android:514855cf82943fd32ba2ea",
+        "android_client_info": {
+          "package_name": "com.techheralds.mymaligai.prod.supplier"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "926430807391-0022ghbup35p5482ok8qrp93q91gohh8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.supplier",
+            "certificate_hash": "8a5540fc888a96e508f7d472c52eca66f62ad628"
+          }
+        },
+        {
+          "client_id": "926430807391-2jr1k6tn920024cftskrpav1avrreo33.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.supplier",
+            "certificate_hash": "a96728e804cf76ad7a46814d420b004577d95437"
+          }
+        },
+        {
+          "client_id": "926430807391-mml7fvf6nv758f5qacoorfipemiqbsu4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.supplier",
+            "certificate_hash": "a113f725e62e82d8830664a231dc1c8c443c2153"
+          }
+        },
+        {
+          "client_id": "926430807391-sgugst1k3b78th89bp61nk9v3tb7mmrq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techheralds.mymaligai.prod.supplier",
+            "certificate_hash": "84e9349e8fe644ece2537d97ec4b74a86beb37cf"
+          }
+        },
+        {
+          "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl2pxVfym2eKE3Pb9BPTidgLPqngUAu3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "926430807391-oj45os0nvftducsm4127a9b0pummupih.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

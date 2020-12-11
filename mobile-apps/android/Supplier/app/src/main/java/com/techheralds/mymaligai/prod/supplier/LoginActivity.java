@@ -91,6 +91,14 @@ public class LoginActivity extends AppCompatActivity {
                 finish();
             }
         }
+        else {
+            //Read supplier data
+            try {
+                readSupplierData();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,8 +111,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        //Read json data
-        readJsonData("supplierdetails.json");
+
 
         SharedPreferences sharedPreferences = getSharedPreferences("local", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -123,9 +130,9 @@ public class LoginActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void login() throws UnsupportedEncodingException {
-        final String phoneNumerIp =  phoneNumer.getText().toString();
+        final String phoneNumerIp = phoneNumer.getText().toString();
         if (!phoneNumerIp.equals("")) {
-            String pNo = "+91"+phoneNumerIp;
+            String pNo = "+91" + phoneNumerIp;
             String e = Base64.getEncoder().encodeToString(pNo.getBytes("utf-8"));
             checkSupplier(e);
         } else {
@@ -134,35 +141,25 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    public void readJsonData(String params) {
-        try {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void readSupplierData() throws UnsupportedEncodingException {
+        SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+        String supplier_photo = sharedPreferences.getString("supplier_photo", "");
+        String supplier_name = sharedPreferences.getString("supplier_name", "");
+        String supplier_phone_number = sharedPreferences.getString("supplier_phone_number", "");
 
-            InputStream is = getAssets().open(params);
+        if (!supplier_photo.equals("")) {
+            Picasso.with(getApplicationContext()).load(supplier_photo).into(logo);
+        }
 
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            String mResponse = new String(buffer);
-            JSONObject jsonObject = new JSONObject(mResponse);
+        if (!supplier_name.equals("")) {
+            title.setText(supplier_name);
+        }
 
-            if (!jsonObject.get("SUPPLIERNAME").toString().equals("")) {
-                title.setText(jsonObject.get("SUPPLIERNAME").toString());
-            }
-
-            if (!jsonObject.get("SUPPLIERLOGO").toString().equals("")) {
-                logo.setBackgroundResource(R.drawable.rounded_corners);
-                Picasso.with(getApplicationContext()).load(jsonObject.get("SUPPLIERLOGO").toString()).into(logo);
-            }
-
-            if (!jsonObject.get("SUPPLIERID").toString().equals("")) {
-                currSupplierId = jsonObject.get("SUPPLIERID").toString();
-            }
-            is.close();
-        } catch (IOException e) {
-            // Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        } catch (JSONException e) {
-            // Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        if(!supplier_phone_number.equals("")){
+            phoneNumer.setText(supplier_phone_number.substring(3));
+            String e = Base64.getEncoder().encodeToString(supplier_phone_number.getBytes("utf-8"));
+            checkSupplier(e);
         }
     }
 
@@ -190,6 +187,9 @@ public class LoginActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString("smsTemplate", data.getSmsTemplate());
                                 editor.putLong("supplier_id", data.getSupplier_id());
+                                editor.putString("supplier_name", data.getName());
+                                editor.putString("supplier_phone_number", data.getPhoneNumber());
+                                editor.putString("supplier_photo", data.getPhoto());
                                 editor.apply();
 
                                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
@@ -247,30 +247,16 @@ public class LoginActivity extends AppCompatActivity {
                     LoginActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            try {
-                                JSONObject jsonObject = new JSONObject(myResponse);
-                                String uid = jsonObject.get("id").toString();
-
-                                if (uid != null) {
-                                    if (uid.equals(currSupplierId)) {
-                                        dialog.dismiss();
-                                        final String phoneNumerIp =  phoneNumer.getText().toString();
-                                        List<AuthUI.IdpConfig> providers = Arrays.asList(
-                                                new AuthUI.IdpConfig.PhoneBuilder().setDefaultNumber("IN", phoneNumerIp).build());
-                                        startActivityForResult(
-                                                AuthUI.getInstance()
-                                                        .createSignInIntentBuilder()
-                                                        .setAvailableProviders(providers)
-                                                        .build(),
-                                                001);
-                                    } else {
-                                        dialog.dismiss();
-                                        Toast.makeText(LoginActivity.this, "Can't login.Supplier data don't match", Toast.LENGTH_LONG).show();
-                                    }
-                                }
-                            } catch (JSONException err) {
-                                Log.d("Error", err.toString());
-                            }
+                            dialog.dismiss();
+                            final String phoneNumerIp = phoneNumer.getText().toString();
+                            List<AuthUI.IdpConfig> providers = Arrays.asList(
+                                    new AuthUI.IdpConfig.PhoneBuilder().setDefaultNumber("IN", phoneNumerIp).build());
+                            startActivityForResult(
+                                    AuthUI.getInstance()
+                                            .createSignInIntentBuilder()
+                                            .setAvailableProviders(providers)
+                                            .build(),
+                                    001);
                         }
                     });
                 } else {
