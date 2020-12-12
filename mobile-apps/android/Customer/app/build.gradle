@@ -17,7 +17,7 @@ android {
 		release {
 			storeFile file('techheralds.jks')
 			storePassword "techheralds"
-			keyAlias "techheralds"
+			keyAlias "upload"
 			keyPassword "techheralds123"
 		}
 	}
