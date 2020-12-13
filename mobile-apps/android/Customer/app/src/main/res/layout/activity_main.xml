@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="right"
                 android:textStyle="bold"
-                android:text="Version: 1.1.0" />
+                android:text="Version: 1.1.2" />
         </LinearLayout>
     </com.google.android.material.navigation.NavigationView>
 
