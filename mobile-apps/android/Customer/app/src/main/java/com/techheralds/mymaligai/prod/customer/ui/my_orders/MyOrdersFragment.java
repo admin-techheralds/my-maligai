@@ -218,6 +218,7 @@ public class MyOrdersFragment extends Fragment {
                             intent.putExtra("name", name.getText().toString());
                             intent.putExtra("phoneNumber", phoneNumber.getText().toString());
                             intent.putExtra("demandList", demands.get(position).getDemandList());
+                            intent.putExtra("timeline", demands.get(position).getTimeLine());
                             intent.putExtra("dp", userDp[0]);
                             intent.putExtra("supplier", demands.get(position).getSupplier());
                             intent.putExtra("consumer", demands.get(position).getConsumer());

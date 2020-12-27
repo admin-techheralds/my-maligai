@@ -170,6 +170,30 @@ public class InvitesFragment extends Fragment {
                         public void onComplete(@NonNull Task<Void> task) {
                             firebaseDatabase.getReference().child("cInvites/" + firebaseUser.getPhoneNumber() + "/" + suppliers.get(position).getUid()).removeValue();
                             firebaseDatabase.getReference().child("customers-suppliers/" + firebaseUser.getUid() + "/" + suppliers.get(position).getUid()).setValue(true);
+                            Toast.makeText(context, "The supplier invite has been accepted successfully.You can now shop with the supplier now", Toast.LENGTH_LONG).show();
+                            suppliers.remove(suppliers.get(position));
+                            ((BaseAdapter) listView.getAdapter()).notifyDataSetChanged();
+                            if (suppliers.size() == 0) {
+                                emptyText.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
+                }
+            });
+
+            rejectBtn.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void onClick(View v) {
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                    LocalDateTime now = LocalDateTime.now();
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("status", "Rejected");
+                    data.put("accepted_date", "");
+                    firebaseDatabase.getReference().child("sInvites/" + suppliers.get(position).getUid() + "/" + firebaseUser.getPhoneNumber()).updateChildren(data).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            firebaseDatabase.getReference().child("cInvites/" + firebaseUser.getPhoneNumber() + "/" + suppliers.get(position).getUid()).removeValue();
 
                             suppliers.remove(suppliers.get(position));
                             ((BaseAdapter) listView.getAdapter()).notifyDataSetChanged();

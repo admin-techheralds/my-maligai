@@ -7,9 +7,12 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -29,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
     Button loginBtn;
     FirebaseDatabase firebaseDatabase;
     FirebaseAuth firebaseAuth;
+    TextView versionName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,15 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         loginBtn = findViewById(R.id.loginBtn);
+
+        versionName = findViewById(R.id.versionName);
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            versionName.setText("Version: "+version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();

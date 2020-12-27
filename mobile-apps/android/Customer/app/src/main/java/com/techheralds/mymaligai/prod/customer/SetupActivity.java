@@ -240,8 +240,13 @@ public class SetupActivity extends AppCompatActivity {
 
             user.updateProfile(profileUpdates);
 
+            //Save delivery address locally
+            SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("address", delivery_address);
+            editor.apply();
 
-            Customer newUser = new Customer(name, "", user.getUid(), user.getPhoneNumber(), "");
+            Customer newUser = new Customer(name, "", user.getUid(), user.getPhoneNumber(), delivery_address);
             firebaseDatabase.getReference().child("customers/" + user.getUid()).setValue(newUser).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {

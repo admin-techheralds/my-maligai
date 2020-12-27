@@ -73,4 +73,7 @@ dependencies {
 
     implementation 'com.soundcloud.android:android-crop:1.0.1@aar'
 
+
+    //Timline Widget
+    implementation 'com.github.vipulasri:timelineview:1.1.5'
 }

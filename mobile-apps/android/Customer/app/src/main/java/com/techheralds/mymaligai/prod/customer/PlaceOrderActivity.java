@@ -73,7 +73,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
     String supplierUid, supplierName, supplierPhoneNumber, supplierDp;
     TextView nameText;
     CircleImageView dpImageView;
-    EditText deleveryTImeBtn;
+    EditText deliveryTImeBtn;
     Spinner spinner;
     ArrayList<Map<String, Object>> tags;
     ArrayList<String> tempTags;//for spinner
@@ -109,6 +109,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_order);
+
+
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Place Order");
@@ -263,7 +265,15 @@ public class PlaceOrderActivity extends AppCompatActivity {
         spinner = findViewById(R.id.spinner);
         nameText = findViewById(R.id.supplierName);
 
-        deleveryTImeBtn = findViewById(R.id.deleveryTImeBtn);
+        deliveryTImeBtn = findViewById(R.id.deleveryTImeBtn);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR_OF_DAY, 6);
+
+        SimpleDateFormat simpleDateFormat  = new SimpleDateFormat("dd/mm/yyyy, hh:mm a");
+        deliveryTImeBtn.setText(simpleDateFormat.format(calendar.getTime()));
+
 
         if (supplierDp.equals("")) {
             dpImageView.setImageResource(R.drawable.nouser);
@@ -271,7 +281,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
             Picasso.with(getApplicationContext()).load(supplierDp).into(dpImageView);
         }
         //get deleviry time
-        deleveryTImeBtn.setOnClickListener(new View.OnClickListener() {
+        deliveryTImeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 show_Datepicker();
@@ -398,7 +408,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.placeDemandBtn:
-                final String dTime = deleveryTImeBtn.getText().toString();
+                final String dTime = deliveryTImeBtn.getText().toString();
 
                 if (demandsArr.size() > 0) {
                     if (dTime.length() > 0) {
@@ -494,9 +504,18 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                     final String deliveryAddress = sharedPreferences.getString("address", "");
 
                                     if (!deliveryAddress.equals("")) {
+                                        bottomSheetDialog.dismiss();
                                         final ProgressDialog progressDialog = ProgressDialog.show(PlaceOrderActivity.this, null, "Placing Order.Please Wait...");
                                         final String key = firebaseDatabase.getReference().child("demands").push().getKey();
-                                        demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, key, deliveryAddress, totalAmount, "cod");
+
+                                        ArrayList<Map<String, Object>> timeLine = new ArrayList<>();
+                                        Map<String, Object> timeLineData = new HashMap<>();
+
+                                        timeLineData.put("status", "Placed");
+                                        timeLineData.put("date", currTime);
+                                        timeLine.add(timeLineData);
+
+                                        demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, timeLine, key, deliveryAddress, totalAmount, "cod", null);
                                         firebaseDatabase.getReference().child("demands/" + key).setValue(newDemand).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
@@ -541,7 +560,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
                     double price = totalAmount;
                     String moneyString = formatter.format(price);
-                    priceText.setText("Total MRP: " + moneyString);
+                    priceText.setText("Total Price: " + moneyString);
                     ListView listView1 = bottomSheetDialog.findViewById(R.id.itemsListView);
                     itemsAdapterList = new itemsAdapterList(PlaceOrderActivity.this, demandsArr);
                     listView1.setAdapter(itemsAdapterList);
@@ -628,9 +647,9 @@ public class PlaceOrderActivity extends AppCompatActivity {
                             AM_PM = "PM";
                         }
                         if (mMinute < 10) {
-                            deleveryTImeBtn.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":0" + mMinute + " " + AM_PM);
+                            deliveryTImeBtn.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":0" + mMinute + " " + AM_PM);
                         } else {
-                            deleveryTImeBtn.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":" + mMinute + " " + AM_PM);
+                            deliveryTImeBtn.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":" + mMinute + " " + AM_PM);
                         }
                         String dateFormat = "yyyy-MM-dd @ hh:mm a";
                         endDate = mYear + "-" + mMonth + "-" + mDay + " @ " + mHour + ":" + mMinute + " " + AM_PM;
@@ -735,7 +754,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
                         double price = multiplyFactorArr[inventories.get(position).getQuantity_type()].get(sPosition) * inventories.get(position).getPrice();
                         String moneyString = formatter.format(price);
-                        itemPrice.setText("MRP: " + moneyString);
+                        itemPrice.setText("Price: " + moneyString);
 
                         //   countText.setText();
 
@@ -953,7 +972,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
             final double price = ((double) items.get(position).get("price"));
             String moneyString = formatter.format(price);
             itemName.setText(capitalize(items.get(position).get("name").toString()));
-            itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
+            itemQuantity.setText(items.get(position).get("quantity").toString() + " - Price: " + moneyString);
             countText.setText(items.get(position).get("count").toString());
 
             addItemBtn.setOnClickListener(new View.OnClickListener() {
@@ -1074,6 +1093,21 @@ public class PlaceOrderActivity extends AppCompatActivity {
         NumberFormat formatter1 = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
         double price1 = totalAmount;
         String moneyString1 = formatter1.format(price1);
-        priceText.setText("Total MRP: " + moneyString1);
+        priceText.setText("Total Price: " + moneyString1);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (demandsArr.size() > 0) {
+            new AlertDialog.Builder(PlaceOrderActivity.this).setTitle("Hold On!").setMessage("This order will be cancelled.Are you sureo go back?").setNegativeButton("Stay here", null)
+                    .setPositiveButton("Cancel Order", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    }).show();
+        } else {
+            finish();
+        }
     }
 }
