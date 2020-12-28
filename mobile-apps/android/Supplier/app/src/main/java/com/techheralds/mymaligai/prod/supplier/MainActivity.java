@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseCrashlytics crashlytics;
     FirebaseUser user;
     FirebaseRemoteConfig firebaseRemoteConfig;
+    TextView versionName;
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -179,23 +182,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("RestrictedApi")
             @Override
             public void run() {
-                if (firebaseAuth.getCurrentUser() != null) {
-                    TextView userName = header.findViewById(R.id.nav_header_userName);
-                    userName.setText(firebaseAuth.getCurrentUser().getDisplayName());
-
-                    TextView userPhone = header.findViewById(R.id.nav_header_userPhone);
-                    userPhone.setText(firebaseAuth.getCurrentUser().getPhoneNumber());
-
-                    CircleImageView userDp = header.findViewById(R.id.nav_header_userDp);
-                    Uri photoUrl = firebaseAuth.getCurrentUser().getPhotoUrl();
-
-                    if (photoUrl != null) {
-                        Picasso.with(getApplicationContext()).load(photoUrl).into(userDp);
-                    } else {
-                        userDp.setImageResource(R.drawable.nouser);
-                    }
-
-                    if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands list")) {
+                    if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("orders list")) {
                         inviteFab.setVisibility(View.GONE);
                         addItemsFab.setVisibility(View.VISIBLE);
                     } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands report")) {
@@ -220,10 +207,46 @@ public class MainActivity extends AppCompatActivity {
                   //  createAndSaveFile("appDetails", jsonObject.toString());
 
                     handler.postDelayed(this, minutes);
-                }
+
             }
         }, minutes);
 
+        if (firebaseAuth.getCurrentUser() != null) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            firebaseDatabase.getReference().child("suppliers/" + user.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() != null) {
+                        Supplier data= dataSnapshot.getValue(Supplier.class);
+                        TextView userName = (TextView) header.findViewById(R.id.nav_header_userName);
+                        userName.setText(data.getName());
+                        TextView userPhone = (TextView) header.findViewById(R.id.nav_header_userPhone);
+                        userPhone.setText(data.getPhoneNumber());
+                        CircleImageView userDp = (CircleImageView) header.findViewById(R.id.nav_header_userDp);
+
+                        if (!data.getPhoto().equals("")) {
+                            Picasso.with(getApplicationContext()).load(data.getPhoto()).into(userDp);
+                        } else {
+                            userDp.setImageResource(R.drawable.nouser);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
+        versionName = findViewById(R.id.versionName);
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            versionName.setText("Version: "+version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public void createAndSaveFile(String params, String mJsonResponse) {

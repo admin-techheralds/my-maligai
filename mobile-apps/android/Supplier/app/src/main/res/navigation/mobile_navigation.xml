@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/nav_demands_list"
         android:name="com.techheralds.mymaligai.prod.supplier.ui.demands_list.DemandsListFragment"
-        android:label="Demands List"
+        android:label="Orders List"
         tools:layout="@layout/fragment_demands_list" />
 
     <fragment

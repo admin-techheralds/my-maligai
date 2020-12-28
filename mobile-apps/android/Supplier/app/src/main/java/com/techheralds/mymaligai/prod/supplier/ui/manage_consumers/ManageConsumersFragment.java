@@ -74,7 +74,7 @@ public class ManageConsumersFragment extends Fragment {
         listView = root.findViewById(R.id.listView);
 
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Please wait...");
-        firebaseDatabase.getReference().child("sInvites/" + user.getUid()).addValueEventListener(new ValueEventListener() {
+        firebaseDatabase.getReference().child("sInvites/" + user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 invites.clear();
@@ -129,7 +129,7 @@ public class ManageConsumersFragment extends Fragment {
                         data.put("date", date);
                         data.put("status", "Pending");
                         firebaseDatabase.getReference().child("sInvites/" + user.getUid() + "/" + phoneNumber).updateChildren(data);
-                        firebaseDatabase.getReference().child("cInvites/" + phoneNumber + "/" + user.getUid()).setValue(true);
+                        firebaseDatabase.getReference().child("cInvites/" + phoneNumber + "/" + user.getUid()+"/invited_date").setValue(date);
                         //smsSentCount++;
                         Toast.makeText(getContext(), "SMS sent", Toast.LENGTH_SHORT).show();
                         break;

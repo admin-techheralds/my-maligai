@@ -50,13 +50,13 @@ import java.util.regex.Pattern;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class OrderViewActivity extends AppCompatActivity {
-    String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address;
+    String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
     double price;
     ArrayList<Map<String, Object>> demandList, timeline;
     FirebaseAuth firebaseAuth;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
-    TextView nameTxt, demandStatusTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext;
+    TextView nameTxt, demandStatusTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, rejectionHeader, rejectionText;
     CircleImageView dp;
     ArrayList<String> statusArr = new ArrayList<>();
     itemsAdapterList adapterList;
@@ -115,6 +115,7 @@ public class OrderViewActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         price = b.getDouble("price");
         address = i.getExtras().getString("address");
+        rejectionReason = i.getExtras().getString("rejectionReason");
 
         deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
 
@@ -126,11 +127,9 @@ public class OrderViewActivity extends AppCompatActivity {
             deliveryTextHeader.setText("Delivery Rejected On");
         } else if (status.equalsIgnoreCase("delivered")) {
             deliveryTextHeader.setText("Delivered On");
-        }
-        else if (status.equalsIgnoreCase("cancelled")) {
+        } else if (status.equalsIgnoreCase("cancelled")) {
             deliveryTextHeader.setText("Cancelled On");
-        }
-        else if (status.equalsIgnoreCase("out for delivery")) {
+        } else if (status.equalsIgnoreCase("out for delivery")) {
             deliveryTextHeader.setText("Out for Delivery On");
         }
 
@@ -164,6 +163,15 @@ public class OrderViewActivity extends AppCompatActivity {
         String moneyString = formatter.format(price);
         priceText.setText(moneyString);
 
+        rejectionHeader = findViewById(R.id.rjectionHeader);
+        rejectionText = findViewById(R.id.rejectionReason);
+
+        if (!rejectionReason.equals("")) {
+            rejectionHeader.setVisibility(View.VISIBLE);
+            rejectionText.setVisibility(View.VISIBLE);
+
+            rejectionText.setText(rejectionReason);
+        }
 
         if (userDp.equals("")) {
             dp.setImageResource(R.drawable.nouser);
@@ -246,7 +254,7 @@ public class OrderViewActivity extends AppCompatActivity {
                                 timeLineData.put("date", currTime);
                                 timeline.add(timeLineData);
 
-                                data.put("deliveryTime",currTime);
+                                data.put("deliveryTime", currTime);
                                 data.put("status", "cancelled");
                                 data.put("timeLine", timeline);
 

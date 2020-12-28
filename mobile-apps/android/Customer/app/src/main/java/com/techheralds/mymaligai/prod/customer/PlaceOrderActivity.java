@@ -111,7 +111,6 @@ public class PlaceOrderActivity extends AppCompatActivity {
         setContentView(R.layout.activity_place_order);
 
 
-
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Place Order");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -271,8 +270,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
         calendar.setTime(new Date());
         calendar.add(Calendar.HOUR_OF_DAY, 6);
 
-        SimpleDateFormat simpleDateFormat  = new SimpleDateFormat("dd/mm/yyyy, hh:mm a");
-        deliveryTImeBtn.setText(simpleDateFormat.format(calendar.getTime()));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/mm/yyyy, hh:mm a");
+     //   deliveryTImeBtn.setText(simpleDateFormat.format(calendar.getTime()));
 
 
         if (supplierDp.equals("")) {
@@ -424,10 +423,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                             btn = bottomSheetDialog.findViewById(R.id.placeOrderBtn);
                             addBtn = bottomSheetDialog.findViewById(R.id.addBtn);
 
-                            final TextView totalItems, totalMrp, address;
+                            final TextView totalItems, totalMrp, address, date;
                             totalItems = bottomSheetDialog.findViewById(R.id.totalItems);
                             totalMrp = bottomSheetDialog.findViewById(R.id.totalMrp);
                             address = bottomSheetDialog.findViewById(R.id.address);
+                            date = bottomSheetDialog.findViewById(R.id.date);
 
                             addBtn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -481,9 +481,9 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                 }
                             });
 
-
                             totalItems.setText(demandsArr.size() == 1 ? demandsArr.size() + " Item" : demandsArr.size() + " Items");
                             totalMrp.setText(moneyString);
+                            date.setText(deliveryTImeBtn.getText().toString());
 
                             //Get delivery address
                             SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);

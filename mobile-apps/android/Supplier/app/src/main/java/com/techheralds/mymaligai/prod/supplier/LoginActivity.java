@@ -9,6 +9,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
     FirebaseUser user;
     EditText phoneNumer;
     CircleImageView logo;
-    TextView title;
+    TextView title, versionName;
     String currSupplierId;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -78,6 +80,14 @@ public class LoginActivity extends AppCompatActivity {
         phoneNumer = findViewById(R.id.phoneNumber);
         logo = findViewById(R.id.logo);
         title = findViewById(R.id.title);
+        versionName = findViewById(R.id.versionName);
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            versionName.setText("Version: "+version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -90,8 +100,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        }
-        else {
+        } else {
             //Read supplier data
             try {
                 readSupplierData();
@@ -110,7 +119,6 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         SharedPreferences sharedPreferences = getSharedPreferences("local", MODE_PRIVATE);
@@ -156,7 +164,7 @@ public class LoginActivity extends AppCompatActivity {
             title.setText(supplier_name);
         }
 
-        if(!supplier_phone_number.equals("")){
+        if (!supplier_phone_number.equals("")) {
             phoneNumer.setText(supplier_phone_number.substring(3));
             String e = Base64.getEncoder().encodeToString(supplier_phone_number.getBytes("utf-8"));
             checkSupplier(e);

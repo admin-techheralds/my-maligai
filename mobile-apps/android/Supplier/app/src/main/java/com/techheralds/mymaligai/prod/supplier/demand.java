@@ -3,6 +3,7 @@ package com.techheralds.mymaligai.prod.supplier;
 import java.util.ArrayList;
 import java.util.Map;
 
+
 public class demand {
     String consumer;
     String supplier;
@@ -10,23 +11,29 @@ public class demand {
     String status;
     String timeCreated;
     ArrayList<Map<String, Object>> demandList;
+    ArrayList<Map<String, Object>> timeLine;
     String key;
     String address;
     double price;
+    String payment_mode;
+    String rejectionReason;
 
     public demand() {
     }
 
-    public demand(String consumer, String supplier, String deliveryTime, String status, String timeCreated, ArrayList<Map<String, Object>> demandList, String key, String address, double price) {
+    public demand(String consumer, String supplier, String deliveryTime, String status, String timeCreated, ArrayList<Map<String, Object>> demandList, ArrayList<Map<String, Object>> timeLine, String key, String address, double price, String payment_mode, String rejectionReason) {
         this.consumer = consumer;
         this.supplier = supplier;
         this.deliveryTime = deliveryTime;
         this.status = status;
         this.timeCreated = timeCreated;
         this.demandList = demandList;
+        this.timeLine = timeLine;
         this.key = key;
         this.address = address;
         this.price = price;
+        this.payment_mode = payment_mode;
+        this.rejectionReason = rejectionReason;
     }
 
     public String getConsumer() {
@@ -77,6 +84,14 @@ public class demand {
         this.demandList = demandList;
     }
 
+    public ArrayList<Map<String, Object>> getTimeLine() {
+        return timeLine;
+    }
+
+    public void setTimeLine(ArrayList<Map<String, Object>> timeLine) {
+        this.timeLine = timeLine;
+    }
+
     public String getKey() {
         return key;
     }
@@ -99,5 +114,21 @@ public class demand {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getPayment_mode() {
+        return payment_mode;
+    }
+
+    public void setPayment_mode(String payment_mode) {
+        this.payment_mode = payment_mode;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

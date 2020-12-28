@@ -231,6 +231,12 @@ public class MyOrdersFragment extends Fragment {
                             intent.putExtra("createdOn", demands.get(position).getTimeCreated());
                             intent.putExtra("items", stringBuilder.toString());
                             intent.putExtra("key", demands.get(position).getKey());
+                            if (demands.get(position).getRejectionReason() != null) {
+                                intent.putExtra("rejectionReason",demands.get(position).getRejectionReason());
+                            }
+                            else {
+                                intent.putExtra("rejectionReason","");
+                            }
                             startActivity(intent);
                         } else {
                             Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_SHORT).show();

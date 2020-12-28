@@ -30,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -42,7 +43,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -56,13 +60,13 @@ import java.util.regex.Pattern;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DemandViewActivity extends AppCompatActivity {
-    String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address;
+    String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
     double price;
-    ArrayList<Map<String, Object>> demandList;
+    ArrayList<Map<String, Object>> demandList, timeline;
     FirebaseAuth firebaseAuth;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
-    TextView nameTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext;
+    TextView nameTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, timelineHint, rejectionHeader, rejectionText;
     CircleImageView dp;
     Spinner statusSpinner;
     ArrayList<String> statusArr = new ArrayList<String>();
@@ -77,6 +81,7 @@ public class DemandViewActivity extends AppCompatActivity {
     String currTime;
     WebView mWebView;
     Button viewOrdersBtn;
+    timelineAdapterList timelineAdapterList;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -85,12 +90,13 @@ public class DemandViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_demand_view);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Demand Details");
+            getSupportActionBar().setTitle("Order Details");
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         demandList = new ArrayList<>();
+        timeline = new ArrayList<>();
 
         mYear = Calendar.getInstance().get(Calendar.YEAR);
         mMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
@@ -115,6 +121,7 @@ public class DemandViewActivity extends AppCompatActivity {
 
         Intent i = getIntent();
         demandList = (ArrayList<Map<String, Object>>) getIntent().getSerializableExtra("demandList");
+        timeline = (ArrayList<Map<String, Object>>) getIntent().getSerializableExtra("timeline");
         key = i.getExtras().getString("key");
         name = i.getExtras().getString("name");
         createdOn = i.getExtras().getString("createdOn");
@@ -128,9 +135,21 @@ public class DemandViewActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         price = b.getDouble("price");
         address = i.getExtras().getString("address");
+        rejectionReason = i.getExtras().getString("rejectionReason");
+
+        rejectionHeader = findViewById(R.id.rjectionHeader);
+        rejectionText = findViewById(R.id.rejectionReason);
+
+        if (!rejectionReason.equals("")) {
+            rejectionHeader.setVisibility(View.VISIBLE);
+            rejectionText.setVisibility(View.VISIBLE);
+
+            rejectionText.setText(rejectionReason);
+        }
 
         deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
         statusSpinner = findViewById(R.id.statusSpinner);
+        timelineHint = findViewById(R.id.timelineHint);
 
         if (status.equalsIgnoreCase("placed")) {
             statusArr.add("Placed");
@@ -139,7 +158,7 @@ public class DemandViewActivity extends AppCompatActivity {
             deliveryTextHeader.setText("Delivery Expected On");
         } else if (status.equalsIgnoreCase("accepted")) {
             statusArr.add("Accepted");
-            statusArr.add("Delivered");
+            statusArr.add("Out for Delivery");
             deliveryTextHeader.setText("Delivery Expected On");
         } else if (status.equalsIgnoreCase("rejected")) {
             statusArr.add("Rejected");
@@ -148,6 +167,15 @@ public class DemandViewActivity extends AppCompatActivity {
         } else if (status.equalsIgnoreCase("delivered")) {
             deliveryTextHeader.setText("Delivered On");
             statusArr.add("Delivered");
+            //statusSpinner.setEnabled(false);
+        } else if (status.equalsIgnoreCase("out for delivery")) {
+            deliveryTextHeader.setText("Delivery Expected On");
+            statusArr.add("Out for Delivery");
+            statusArr.add("Delivered");
+            //statusSpinner.setEnabled(false);
+        } else if (status.equalsIgnoreCase("cancelled")) {
+            deliveryTextHeader.setText("Cancelled On");
+            statusArr.add("Cancelled");
             //statusSpinner.setEnabled(false);
         }
 
@@ -217,6 +245,22 @@ public class DemandViewActivity extends AppCompatActivity {
             }
         });
 
+        timelineHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BottomSheetDialog timeLineSheet = new BottomSheetDialog(DemandViewActivity.this);
+
+                timeLineSheet.setContentView(R.layout.timeline_sheet);
+
+                ListView listView = timeLineSheet.findViewById(R.id.listView);
+
+                timelineAdapterList = new timelineAdapterList(DemandViewActivity.this, timeline);
+                listView.setAdapter(timelineAdapterList);
+
+                timeLineSheet.show();
+            }
+        });
+
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -225,24 +269,52 @@ public class DemandViewActivity extends AppCompatActivity {
                     if (statusArr.get(position).equalsIgnoreCase("accepted")) {
                         show_Datepicker();
                     } else if (statusArr.get(position).equalsIgnoreCase("delivered")) {
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("status", "Delivered");
-                        data.put("deliveryTime", currTime);
-                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
-                        firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
+                        firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onSuccess(Void aVoid) {
-                                progressDialog.dismiss();
-                                Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
-                                startActivity(intent);
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("status", "Delivered");
+                                    data.put("deliveryTime", currTime);
+
+                                    Map<String, Object> timeLineData = new HashMap<>();
+
+                                    timeLineData.put("status", "Delivered");
+                                    timeLineData.put("date", currTime);
+                                    timeline.add(timeLineData);
+                                    data.put("timeLine", timeline);
+
+                                    firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            progressDialog.dismiss();
+                                            Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } else {
+                                    progressDialog.dismiss();
+                                    statusArr.clear();
+                                    statusArr.add("Cancelled");
+                                    deliveryTextHeader.setText("Cancelled On");
+                                    Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer", Toast.LENGTH_LONG).show();
+                                }
+
                             }
-                        }).addOnFailureListener(new OnFailureListener() {
+
                             @Override
-                            public void onFailure(@NonNull Exception e) {
-                                progressDialog.dismiss();
-                                Toast.makeText(DemandViewActivity.this, "Failed to update", Toast.LENGTH_SHORT).show();
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
                             }
                         });
+
                     } else if (statusArr.get(position).equalsIgnoreCase("placed")) {
 
                         final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
@@ -260,25 +332,120 @@ public class DemandViewActivity extends AppCompatActivity {
                                 Toast.makeText(DemandViewActivity.this, "Failed to update", Toast.LENGTH_SHORT).show();
                             }
                         });
-                    } else if (statusArr.get(position).equalsIgnoreCase("rejected")) {
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("status", "Rejected");
-                        data.put("deliveryTime", currTime);
-                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
-                        firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    } else if (statusArr.get(position).equalsIgnoreCase("out for delivery")) {
+                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
+                        firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onSuccess(Void aVoid) {
-                                progressDialog.dismiss();
-                                Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
-                                startActivity(intent);
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("status", "Out for Delivery");
+                                    data.put("deliveryTime", currTime);
+
+                                    Map<String, Object> timeLineData = new HashMap<>();
+
+                                    timeLineData.put("status", "Out for Delivery");
+                                    timeLineData.put("date", currTime);
+                                    timeline.add(timeLineData);
+                                    data.put("timeLine", timeline);
+
+                                    firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            progressDialog.dismiss();
+                                            Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } else {
+                                    progressDialog.dismiss();
+                                    statusArr.clear();
+                                    statusArr.add("Cancelled");
+                                    deliveryTextHeader.setText("Cancelled On");
+                                    Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer", Toast.LENGTH_LONG).show();
+                                }
+
                             }
-                        }).addOnFailureListener(new OnFailureListener() {
+
                             @Override
-                            public void onFailure(@NonNull Exception e) {
-                                progressDialog.dismiss();
-                                Toast.makeText(DemandViewActivity.this, "Failed to update", Toast.LENGTH_SHORT).show();
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
                             }
                         });
+
+                    } else if (statusArr.get(position).equalsIgnoreCase("rejected")) {
+                        final BottomSheetDialog rejectionSheet = new BottomSheetDialog(DemandViewActivity.this);
+                        rejectionSheet.setContentView(R.layout.rejection_reason_sheet);
+                        final EditText reasonIp = rejectionSheet.findViewById(R.id.ip);
+                        Button btn = rejectionSheet.findViewById(R.id.btn);
+
+                        btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                final String reason = reasonIp.getText().toString().trim();
+
+                                if (!reason.equals("")) {
+                                    final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Rejecting Order...");
+                                    firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
+                                                rejectionSheet.dismiss();
+                                                Map<String, Object> data = new HashMap<>();
+                                                data.put("status", "Rejected");
+                                                data.put("deliveryTime", currTime);
+                                                data.put("rejectionReason", reason);
+
+                                                Map<String, Object> timeLineData = new HashMap<>();
+
+                                                timeLineData.put("status", "Rejected");
+                                                timeLineData.put("date", currTime);
+                                                timeline.add(timeLineData);
+                                                data.put("timeLine", timeline);
+
+                                                firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        progressDialog.dismiss();
+                                                        Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                                                        startActivity(intent);
+                                                    }
+                                                }).addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        progressDialog.dismiss();
+                                                        Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                            } else {
+                                                progressDialog.dismiss();
+                                                statusArr.clear();
+                                                statusArr.add("Cancelled");
+                                                deliveryTextHeader.setText("Cancelled On");
+                                                Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer.Can't reject the order", Toast.LENGTH_LONG).show();
+                                            }
+
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                        }
+                                    });
+
+                                } else {
+                                    Toast.makeText(DemandViewActivity.this, "Enter reason for rejection", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
+                        rejectionSheet.show();
                     }
                 }
                 isLoaded = true;
@@ -341,31 +508,58 @@ public class DemandViewActivity extends AppCompatActivity {
                             }
                             AM_PM = "PM";
                         }
-                        String dateTime;
+                        final String dateTime;
                         if (mMinute < 10) {
                             dateTime = mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":0" + mMinute + " " + AM_PM;
                         } else {
                             dateTime = mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":" + mMinute + " " + AM_PM;
                         }
+                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Accepting Order...");
+                        firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("status", "Accepted");
+                                    data.put("deliveryTime", dateTime);
 
-                        Map<String, Object> data = new HashMap<>();
-                        data.put("status", "Accepted");
-                        data.put("deliveryTime", dateTime);
-                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
-                        firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                progressDialog.dismiss();
-                                Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
-                                startActivity(intent);
+                                    Map<String, Object> timeLineData = new HashMap<>();
+
+                                    timeLineData.put("status", "Accepted");
+                                    timeLineData.put("date", currTime);
+                                    timeline.add(timeLineData);
+                                    data.put("timeLine", timeline);
+
+                                    firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            progressDialog.dismiss();
+                                            Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } else {
+                                    progressDialog.dismiss();
+                                    statusArr.clear();
+                                    statusArr.add("Cancelled");
+                                    deliveryTextHeader.setText("Cancelled On");
+                                    Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer.Can't accept the order", Toast.LENGTH_LONG).show();
+                                }
+
                             }
-                        }).addOnFailureListener(new OnFailureListener() {
+
                             @Override
-                            public void onFailure(@NonNull Exception e) {
-                                progressDialog.dismiss();
-                                Toast.makeText(DemandViewActivity.this, "Failed to update", Toast.LENGTH_SHORT).show();
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
                             }
                         });
+
 
                     }
                 }, mHour, mMinute, false);
@@ -532,7 +726,7 @@ public class DemandViewActivity extends AppCompatActivity {
 
     public void printReceipt() {
         new AlertDialog.Builder(DemandViewActivity.this).setTitle("Print Receipt")
-                .setMessage("Are you sure to print receipt for this demand?")
+                .setMessage("Are you sure to print receipt for this order?")
                 .setNegativeButton("Cancel", null).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -592,6 +786,44 @@ public class DemandViewActivity extends AppCompatActivity {
             String moneyString = formatter.format(price);
             itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
             countText.setText(items.get(position).get("count").toString());
+            return view;
+        }
+    }
+
+    public class timelineAdapterList extends BaseAdapter {
+        Context context;
+        ArrayList<Map<String, Object>> items;
+
+        public timelineAdapterList(Context context, ArrayList<Map<String, Object>> items) {
+            this.context = context;
+            this.items = items;
+        }
+
+        @Override
+        public int getCount() {
+            return items.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        @Override
+        public View getView(int position, View view, ViewGroup parent) {
+            view = LayoutInflater.from(context).inflate(R.layout.timeline_list, parent, false);
+            TextView status = view.findViewById(R.id.status);
+            TextView date = view.findViewById(R.id.date);
+
+            status.setText("Order " + capitalize(items.get(position).get("status").toString()) + " On");
+            date.setText(items.get(position).get("date").toString());
+
             return view;
         }
     }

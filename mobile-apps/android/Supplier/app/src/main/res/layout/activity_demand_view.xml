@@ -74,12 +74,39 @@
             android:id="@+id/statusSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/timelineHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap for timeline details"
+            android:textStyle="bold"
+            />
+        <TextView
+            android:id="@+id/rjectionHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Reason for Rejection"
+            android:visibility="gone"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/rejectionReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="#222"
+            android:visibility="gone"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Demanded On"
+            android:text="Ordered On"
             android:textStyle="bold" />
 
         <TextView
@@ -111,7 +138,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Total MRP"
+            android:text="Total Price"
             android:textStyle="bold" />
 
         <TextView
@@ -143,7 +170,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Total Demanded Items"
+            android:text="Total Ordered Items"
             android:textStyle="bold" />
 
         <TextView
@@ -160,6 +187,6 @@
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="View Demanded Items" />
+            android:text="View Ordered Items" />
     </LinearLayout>
 </ScrollView>
