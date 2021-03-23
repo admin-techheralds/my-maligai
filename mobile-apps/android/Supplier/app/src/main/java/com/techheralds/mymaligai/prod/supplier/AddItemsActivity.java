@@ -23,6 +23,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -445,6 +446,8 @@ public class AddItemsActivity extends AppCompatActivity {
                 TextView title = view.findViewById(R.id.itemName);
                 TextView subTitle = view.findViewById(R.id.itemQuantity);
                 ImageView image = view.findViewById(R.id.itemImg);
+                LinearLayout ll = view.findViewById(R.id.ll);
+                ll.setVisibility(View.GONE);
 
                 title.setText(capitalize(inventories.get(position).getName()));
 

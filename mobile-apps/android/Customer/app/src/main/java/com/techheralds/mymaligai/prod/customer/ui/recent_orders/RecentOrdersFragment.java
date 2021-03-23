@@ -226,6 +226,7 @@ public class RecentOrdersFragment extends Fragment {
                             intent.putExtra("name", name.getText().toString());
                             intent.putExtra("phoneNumber", phoneNumber.getText().toString());
                             intent.putExtra("demandList", demands.get(position).getDemandList());
+                            intent.putExtra("timeline", demands.get(position).getTimeLine());
                             intent.putExtra("dp", userDp[0]);
                             intent.putExtra("supplier", demands.get(position).getSupplier());
                             intent.putExtra("consumer", demands.get(position).getConsumer());
@@ -238,6 +239,12 @@ public class RecentOrdersFragment extends Fragment {
                             intent.putExtra("createdOn", demands.get(position).getTimeCreated());
                             intent.putExtra("items", stringBuilder.toString());
                             intent.putExtra("key", demands.get(position).getKey());
+                            if (demands.get(position).getRejectionReason() != null) {
+                                intent.putExtra("rejectionReason",demands.get(position).getRejectionReason());
+                            }
+                            else {
+                                intent.putExtra("rejectionReason","");
+                            }
                             startActivity(intent);
                         } else {
                             Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_SHORT).show();

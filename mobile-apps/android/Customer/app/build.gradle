@@ -8,8 +8,8 @@ android {
         applicationId "com.techheralds.mymaligai.prod.customer"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.1.0"
+        versionCode 10
+        versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -17,7 +17,7 @@ android {
 		release {
 			storeFile file('techheralds.jks')
 			storePassword "techheralds"
-			keyAlias "techheralds"
+			keyAlias "upload"
 			keyPassword "techheralds123"
 		}
 	}
@@ -73,4 +73,7 @@ dependencies {
 
     implementation 'com.soundcloud.android:android-crop:1.0.1@aar'
 
+
+    //Timline Widget
+    implementation 'com.github.vipulasri:timelineview:1.1.5'
 }

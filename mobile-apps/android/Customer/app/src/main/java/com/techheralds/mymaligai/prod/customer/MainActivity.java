@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -25,7 +27,11 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
@@ -54,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     String userType;
     FloatingActionButton newDemandFab, addItemsFab;
     FirebaseRemoteConfig firebaseRemoteConfig;
+    TextView versionName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +147,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (firebaseAuth.getCurrentUser() != null) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            firebaseDatabase.getReference().child("customers/" + user.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() != null) {
+                        Customer data= dataSnapshot.getValue(Customer.class);
+                        TextView userName = (TextView) header.findViewById(R.id.nav_header_userName);
+                        userName.setText(data.getName());
+                        TextView userPhone = (TextView) header.findViewById(R.id.nav_header_userPhone);
+                        userPhone.setText(data.getPhoneNumber());
+                        CircleImageView userDp = (CircleImageView) header.findViewById(R.id.nav_header_userDp);
+
+                        if (!data.getDp().equals("")) {
+                            Picasso.with(getApplicationContext()).load(data.getDp()).into(userDp);
+                        } else {
+                            userDp.setImageResource(R.drawable.nouser);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
         final int minutes = 1000;
         final Handler handler = new Handler();
 
@@ -147,35 +182,28 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("RestrictedApi")
             @Override
             public void run() {
-                if (firebaseAuth.getCurrentUser() != null) {
-                    TextView userName = (TextView) header.findViewById(R.id.nav_header_userName);
-                    userName.setText(firebaseAuth.getCurrentUser().getDisplayName());
-
-                    TextView userPhone = (TextView) header.findViewById(R.id.nav_header_userPhone);
-                    userPhone.setText(firebaseAuth.getCurrentUser().getPhoneNumber());
-
-                    CircleImageView userDp = (CircleImageView) header.findViewById(R.id.nav_header_userDp);
-                    Uri photoUrl = firebaseAuth.getCurrentUser().getPhotoUrl();
-
-                    if (photoUrl != null) {
-                        Picasso.with(getApplicationContext()).load(photoUrl).into(userDp);
-                    } else {
-                        userDp.setImageResource(R.drawable.nouser);
-                    }
-
-                    if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("recent orders")) {
-                        fab.setVisibility(View.VISIBLE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my orders")) {
-                        fab.setVisibility(View.VISIBLE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("invites")) {
-                        fab.setVisibility(View.GONE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my profile")) {
-                        fab.setVisibility(View.GONE);
-                    }
-                    handler.postDelayed(this, minutes);
+                if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("recent orders")) {
+                    fab.setVisibility(View.VISIBLE);
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my orders")) {
+                    fab.setVisibility(View.VISIBLE);
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("invites")) {
+                    fab.setVisibility(View.GONE);
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my profile")) {
+                    fab.setVisibility(View.GONE);
                 }
+                handler.postDelayed(this, minutes);
+
             }
         }, minutes);
+
+        versionName = findViewById(R.id.versionName);
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            versionName.setText("Version: " + version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 

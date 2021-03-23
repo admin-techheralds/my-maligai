@@ -48,6 +48,16 @@
         android:text="Login with Phone Number" />
 </LinearLayout>
     <TextView
+        android:id="@+id/versionName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:fontFamily="@font/noto_sans"
+        />
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"

@@ -29,12 +29,12 @@
             android:padding="16dp">
 
             <TextView
-                android:id="@+id/logout"
+                android:id="@+id/versionName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="right"
                 android:textStyle="bold"
-                android:text="Version: 1.0.0" />
+                />
         </LinearLayout>
     </com.google.android.material.navigation.NavigationView>
 

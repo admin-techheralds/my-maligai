@@ -7,7 +7,7 @@
         <item
             android:id="@+id/nav_demands_list"
             android:icon="@drawable/demands_list"
-            android:title="Demands List" />
+            android:title="Orders List" />
         <item
             android:id="@+id/nav_demands_report"
             android:icon="@drawable/demand_report"

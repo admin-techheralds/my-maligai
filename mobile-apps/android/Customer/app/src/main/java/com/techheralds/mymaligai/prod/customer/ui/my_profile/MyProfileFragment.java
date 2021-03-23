@@ -118,7 +118,7 @@ public class MyProfileFragment extends Fragment {
                                         updateBtn.setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
-                                                if (!updateInput.getText().toString().equals("")) {
+                                                if (!updateInput.getText().toString().trim().equals("")) {
                                                     final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Updating Name...");
                                                     firebaseDatabase.getReference().child("customers/" + firebaseAuth.getCurrentUser().getUid() + "/name").setValue(updateInput.getText().toString().trim()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
