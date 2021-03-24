@@ -257,6 +257,16 @@ public class InviteActivity extends AppCompatActivity {
 
         PendingIntent deliveredPI = PendingIntent.getBroadcast(InviteActivity.this, 0,
                 new Intent(DELIVERED), 0);
+        Map<String, Object> data = new HashMap<>();
+        int i = selectedNumbers.indexOf(fullNumber);
+
+        data.put("name", selectedContacts.get(i).get("name").toString());
+        data.put("number", "+91" + phoneNumber);
+        data.put("invited_date", date);
+        data.put("accepted_date", "");
+        data.put("status", "Pending");
+        firebaseDatabase.getReference().child("sInvites/" + user.getUid() + "/+91" + phoneNumber).setValue(data);
+        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" + user.getUid()+"/invited_date").setValue(date);
 
         //---when the SMS has been accept---
         registerReceiver(new BroadcastReceiver() {
@@ -265,16 +275,6 @@ public class InviteActivity extends AppCompatActivity {
             public void onReceive(Context arg0, Intent arg1) {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
-                        Map<String, Object> data = new HashMap<>();
-                        int i = selectedNumbers.indexOf(fullNumber);
-
-                        data.put("name", selectedContacts.get(i).get("name").toString());
-                        data.put("number", "+91" + phoneNumber);
-                        data.put("invited_date", date);
-                        data.put("accepted_date", "");
-                        data.put("status", "Pending");
-                        firebaseDatabase.getReference().child("sInvites/" + user.getUid() + "/+91" + phoneNumber).setValue(data);
-                        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" + user.getUid()+"/invited_date").setValue(date);
 
                         //smsSentCount++;
                         //Toast.makeText(getBaseContext(), "SMS accept", Toast.LENGTH_SHORT).show();
