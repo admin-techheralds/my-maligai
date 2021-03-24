@@ -7,6 +7,7 @@ const path = require('path');
 var base64 = require('base-64');
 var request = require('request');
 const os = require('os'); 
+const secureRandom = require('secure-random')
 
 
 // The Firebase Admin SDK to access Cloud Firestore.
@@ -19,7 +20,7 @@ const { parseRequestAndDownloadFiles } = require('./lib/downloadFiles.js');
 const { processSupplierInventoryFiles } = require('./lib/processInventoryFile.js');
 const { startVMInstance, waitForVMInstance, stopVMInstance, waitForBuildToComplete, isVMUpAdRunning, triggerSupplierBuildRequest  } = require('./lib/gcpinstancehandler.js');
 
-const development = (env === "my-maligai")
+const development = (env === "supplier-customer")
 const credFile = env + "-service-account.json"
 const database = "https://" + env + ".firebaseio.com/"; 
 const bucket_name = env + ".appspot.com";
@@ -206,34 +207,53 @@ uploadInventoryImages = function (supplier_id, bulk_import_id, inventories, curr
   }, 200)
 }
 
-getMaxComponentForSKU = function (value) {
+getMaxComponentForSKU = function(value, maxchars) {
   value = value + ""
-  if (value.length >= 3) {
-    return value.substr(0, 3)
+  value = value.replace(" ", "")
+  if(maxchars === undefined) {
+      maxchars  = 3
+  }
+  if(value.length >= maxchars) {
+    return value.substr(0, maxchars)
   } else {
-    while (value.length < 3) {
+    while(value.length < maxchars) {
       value = "0" + value
     }
   }
   return value;
 }
 
-getsku = function (supplier_id, item) {
-  return "sku" +
-    "-" + getMaxComponentForSKU(supplier_id) +
-    "-" + getMaxComponentForSKU(item['categoryname']) +
-    "-" + getMaxComponentForSKU(item['itemname']) +
-    "-" + getMaxComponentForSKU(item['attr1']) +
-    "-" + getMaxComponentForSKU(item['attr2']) +
-    "-" + getMaxComponentForSKU(item['attr3'])
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
 }
 
-updateInventoryItems = function (supplier_id, bulk_import_id, inventories, db_categories, cb) {
+
+getsku = function (supplier_id, item, supplier_details) {
+  sku = "sku"
+  // sku += "-" + secureRandom.randomBuffer(5).toString('hex');
+  sku += "-" + getMaxComponentForSKU(getRandomInt(999999) + "", 6);
+
+  if(supplier_details !== undefined && supplier_details['supplier_id'] !== undefined) {
+    sku += "-" + supplier_details['supplier_id']
+  } else {
+    sku += "-" + getMaxComponentForSKU(supplier_id)
+  }
+
+  sku += "-" + getMaxComponentForSKU(item['categoryname'])
+  sku += "-" + getMaxComponentForSKU(item['itemname'])
+  sku += "-" + getMaxComponentForSKU(item['attr1'])
+  sku += "-" + getMaxComponentForSKU(item['attr2'])
+  sku += "-" + getMaxComponentForSKU(item['attr3'])
+
+  return sku;
+}
+
+updateInventoryItems = function (supplier_id, bulk_import_id, inventories, db_categories, supplier_details, cb) {
   console.log("Updating the Inventory Items...");
   var inventory = admin.database().ref('inventory');
   var update_data = {};
   inventories.forEach(function (item) {
-    item['sku'] = getsku(supplier_id, item)
+    item['sku'] = getsku(supplier_id, item, supplier_details)
     console.log('Updating the item sku:' + item['sku'])
     var category_id = getCategoryIDByName(item['categoryname'], db_categories);
 
@@ -242,6 +262,7 @@ updateInventoryItems = function (supplier_id, bulk_import_id, inventories, db_ca
       update_data[supplier_id + '/' + category_id + '/' + item['sku'] + '/img'] = item['itemimageurl'];
     }
     update_data[supplier_id + '/' + category_id + '/' + item['sku'] + '/name'] = item['itemname'];
+    update_data[supplier_id + '/' + category_id + '/' + item['sku'] + '/searchname'] = item['itemname'].toLowerCase();
     if (item['itemprice'] !== undefined) {
       update_data[supplier_id + '/' + category_id + '/' + item['sku'] + '/price'] = parseFloat(item['itemprice']);
     }
@@ -269,7 +290,7 @@ updateInventoryItems = function (supplier_id, bulk_import_id, inventories, db_ca
   })
 }
 
-updateSupplierInventories = function (supplier_id, bulk_import_id, inventories, db_categories, cb) {
+updateSupplierInventories = function (supplier_id, bulk_import_id, inventories, db_categories, supplier_details, cb) {
   console.log('Updating the supplier inventories for the id:' + supplier_id);
 
   //upload the images first for all the inventories
@@ -280,7 +301,7 @@ updateSupplierInventories = function (supplier_id, bulk_import_id, inventories, 
       console.log("Failed to upload the items images. Error:" + err);
       return cb(err, "FAIL")
     }
-    updateInventoryItems(supplier_id, bulk_import_id, inventories, db_categories, function (err, results) {
+    updateInventoryItems(supplier_id, bulk_import_id, inventories, db_categories, supplier_details, function (err, results) {
       if (err) {
         console.log("Failed while updating the inventories. Error:" + err);
         return cb(err, "FAIL")
@@ -535,72 +556,82 @@ app.post('/uploadAndProcessSupplierInventories', function (req, res) {
         error: 'Error as no files or supplier details are present in the input request'
       })
     }
-    saveUploadedSupplierInventoryFile(supplier_id, bulk_import_id, filesList['supplier_inventory_file'], function (err, link) {
+
+    getSupplierDetails(supplier_id, function(err, supplier_details) {
       if (err) {
-        console.log('Error while saving the supplier uploaded zip file. Error:' + err)
+        console.log('Error while getting the supplier details for the given supplier id. Error:' + err)
         return res.status(400).json({
           error: 'Error while saving the supplier uploaded zip file. ' + err
         })
       }
-      storeUploadedSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, link, function (err, result) {
+
+      saveUploadedSupplierInventoryFile(supplier_id, bulk_import_id, filesList['supplier_inventory_file'], function (err, link) {
         if (err) {
-          console.log('Error while storing the supplier uploaded zip file to database. Error:' + err)
+          console.log('Error while saving the supplier uploaded zip file. Error:' + err)
           return res.status(400).json({
-            error: 'Error while saving the supplier uploaded zip file to database. ' + err
+            error: 'Error while saving the supplier uploaded zip file. ' + err
           })
         }
-        res.status(200).json({
-          bulk_import_id: bulk_import_id
-        });
-        setTimeout(function () {
+        storeUploadedSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, link, function (err, result) {
+          if (err) {
+            console.log('Error while storing the supplier uploaded zip file to database. Error:' + err)
+            return res.status(400).json({
+              error: 'Error while saving the supplier uploaded zip file to database. ' + err
+            })
+          }
+          res.status(200).json({
+            bulk_import_id: bulk_import_id
+          });
+          setTimeout(function () {
 
-          processSupplierInventoryFiles(filesList, bulk_import_id, function (err, fileData) {
-            if (err) {
-              console.log('Error while processing the Supplier Inventory Files. Error:' + err)
-              // return res.status(400).json( {
-              //   error : 'Error while processing the Supplier Inventory Files. ' + err
-              // })
-              return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, err);
-            }
-            if (fileData === undefined || fileData['name'] === undefined || fileData['inventories_list'] === undefined) {
-              console.log('Error as supplier name / inventories could not be retrieved from the uploaded file')
-              // return res.status(400).json( {
-              //   error : 'Error as supplier name / inventories could not be retrieved from the uploaded file'
-              // })
-              return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, "Error as supplier name / inventories could not be retrieved from the uploaded file");
-            }
-
-            var supplier_key = supplier_id;
-
-            //Removed it as we are passing the supplier id as one of the request parameters;
-            // findSupplierByName(fileData['name'], function(err, supplier_key) {
-            //   if(err) {
-            //     console.log('Error while processing the Supplier Inventory Files. Error:' + err)
-            //     return res.status(400).json( {
-            //       error : 'Error while processing the Supplier Inventory Files. ' + err
-            //     })
-            //   }
-
-            //upload the file which is active
-
-            inventories_list = fileData['inventories_list'];
-            uniqueCategories = inventories_list['categories']
-            inventories = inventories_list['inventories'];
-            updateSupplierInventoryCategories(supplier_key, uniqueCategories, function (err, db_categories) {
+            processSupplierInventoryFiles(filesList, bulk_import_id, function (err, fileData) {
               if (err) {
-                // console.log('Error while updating the supplier inventory actegories. Error:' + err)
+                console.log('Error while processing the Supplier Inventory Files. Error:' + err)
                 // return res.status(400).json( {
                 //   error : 'Error while processing the Supplier Inventory Files. ' + err
                 // })
-                return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_key, bulk_import_id, err, res)
+                return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, err);
+              }
+              if (fileData === undefined || fileData['name'] === undefined || fileData['inventories_list'] === undefined) {
+                console.log('Error as supplier name / inventories could not be retrieved from the uploaded file')
+                // return res.status(400).json( {
+                //   error : 'Error as supplier name / inventories could not be retrieved from the uploaded file'
+                // })
+                return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_id, bulk_import_id, "Error as supplier name / inventories could not be retrieved from the uploaded file");
               }
 
-              updateSupplierInventories(supplier_key, bulk_import_id, inventories, db_categories, function (err, result) {
-                return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_key, bulk_import_id, err, res)
+              var supplier_key = supplier_id;
+
+              //Removed it as we are passing the supplier id as one of the request parameters;
+              // findSupplierByName(fileData['name'], function(err, supplier_key) {
+              //   if(err) {
+              //     console.log('Error while processing the Supplier Inventory Files. Error:' + err)
+              //     return res.status(400).json( {
+              //       error : 'Error while processing the Supplier Inventory Files. ' + err
+              //     })
+              //   }
+
+              //upload the file which is active
+
+              inventories_list = fileData['inventories_list'];
+              uniqueCategories = inventories_list['categories']
+              inventories = inventories_list['inventories'];
+              updateSupplierInventoryCategories(supplier_key, uniqueCategories, function (err, db_categories) {
+                if (err) {
+                  // console.log('Error while updating the supplier inventory actegories. Error:' + err)
+                  // return res.status(400).json( {
+                  //   error : 'Error while processing the Supplier Inventory Files. ' + err
+                  // })
+                  return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_key, bulk_import_id, err, res)
+                }
+
+                updateSupplierInventories(supplier_key, bulk_import_id, inventories, db_categories, supplier_details, function (err, result) {
+                  return updateUploadStatusSupplierInventoryFileIntoDatabase(supplier_key, bulk_import_id, err, res)
+                })
               })
-            })
-          });
-        }, 500);
+            });
+          }, 500);
+        });
       });
     });
   });
@@ -692,6 +723,12 @@ app.post('/triggerSupplierBuild', function(req, res) {
       error: 'Error as no supplier id is found in the request for triggering the build'
     })
   }
+  var build_type = req.body['build_type']
+  if(build_type === undefined || build_type.trim().length <= 0) {
+    console.log('build_type is NOT found in the request for triggering the build. Default to Debug')
+	build_type = "Debug"
+  }
+
   getSupplierDetails(supplier_id, function(err, supplier_details) {
     if(err) {
         console.log('Error while fetching the supplier details. Error:' + err);
@@ -744,7 +781,7 @@ app.post('/triggerSupplierBuild', function(req, res) {
         console.log("triiger url is:" + build_trigger_uri );
         var payload = {
           "supplier_id" : supplier_id,
-          "build_type" : "Debug"
+          "build_type" : build_type
         }
         console.log("Ready to tigger the build now");
         triggerSupplierBuildRequest(build_trigger_uri, payload, function(err, status) {
@@ -855,5 +892,17 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
           var token = tokenSnap.val();
           return admin.messaging().sendToDevice(token, payload);
       });
+  } else if (status === "Out for Delivery") {
+    const payload = {
+        notification: {
+            title: "Order Out for Delivery" + " (Order ID: " + orderId + ")",
+            body: "Order out for delivery on " + deliveryTime,
+        }
+    };
+
+    return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
+        var token = tokenSnap.val();
+        return admin.messaging().sendToDevice(token, payload);
+    });
   }
 });
