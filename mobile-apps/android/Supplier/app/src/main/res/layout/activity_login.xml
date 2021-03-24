@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             android:gravity="center_horizontal"
-            android:text="MyMaligai Supplier"
+            android:text="My-Maligai Supplier"
             android:textSize="30dp"
             android:textStyle="bold" />
 

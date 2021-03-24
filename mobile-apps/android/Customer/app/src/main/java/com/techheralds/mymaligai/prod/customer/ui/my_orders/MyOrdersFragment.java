@@ -231,6 +231,9 @@ public class MyOrdersFragment extends Fragment {
                             intent.putExtra("createdOn", demands.get(position).getTimeCreated());
                             intent.putExtra("items", stringBuilder.toString());
                             intent.putExtra("key", demands.get(position).getKey());
+                            intent.putExtra("paid", demands.get(position).getPaid());
+                            intent.putExtra("payment_mode",demands.get(position).getPayment_mode());
+
                             if (demands.get(position).getRejectionReason() != null) {
                                 intent.putExtra("rejectionReason",demands.get(position).getRejectionReason());
                             }

@@ -84,14 +84,27 @@
         android:text="Mode of Payment"
         android:textStyle="bold" />
 
-    <TextView
+    <RadioGroup
+        android:id="@+id/radioGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:textColor="#222"
-        android:textSize="16dp"
-        android:text="Cash on Delivery"
-        android:textStyle="bold" />
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/payment_cod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cash On Delivery"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            />
+        <RadioButton
+            android:id="@+id/payment_upi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UPI Payment"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            />
+    </RadioGroup>
 
     <Button
         android:id="@+id/addBtn"

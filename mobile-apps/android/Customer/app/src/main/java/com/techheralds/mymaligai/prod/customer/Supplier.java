@@ -10,11 +10,12 @@ public class Supplier {
     Long dateCreated;
     String photo;
     String smsTemplate;
+    String upiId;
 
     public Supplier() {
     }
 
-    public Supplier(String name, String uid, String phoneNumber, String address, String location, Boolean status, Long dateCreated, String photo, String smsTemplate) {
+    public Supplier(String name, String uid, String phoneNumber, String address, String location, Boolean status, Long dateCreated, String photo, String smsTemplate, String upiId) {
         this.name = name;
         this.uid = uid;
         this.phoneNumber = phoneNumber;
@@ -24,6 +25,7 @@ public class Supplier {
         this.dateCreated = dateCreated;
         this.photo = photo;
         this.smsTemplate = smsTemplate;
+        this.upiId = upiId;
     }
 
     public String getName() {
@@ -96,5 +98,13 @@ public class Supplier {
 
     public void setSmsTemplate(String smsTemplate) {
         this.smsTemplate = smsTemplate;
+    }
+
+    public String getUpiId() {
+        return upiId;
+    }
+
+    public void setUpiId(String upiId) {
+        this.upiId = upiId;
     }
 }

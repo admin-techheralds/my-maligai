@@ -66,8 +66,8 @@ public class MyProfileFragment extends Fragment {
     CircleImageView dp;
     TextView name, phoneNumber, headerText;
     Button editBtn, addTagsBtn;
-    TextView smsTemplteText;
-    String smsTemplte;
+    TextView smsTemplteText, upiIdText;
+    String smsTemplte, userUpiId = "";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -85,6 +85,7 @@ public class MyProfileFragment extends Fragment {
 
         listView = root.findViewById(R.id.profileUserTagsList);
         smsTemplteText = root.findViewById(R.id.profileSmsTemplate);
+        upiIdText = root.findViewById(R.id.upiId);
         headerText = root.findViewById(R.id.profileTagsheader);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("local", Context.MODE_PRIVATE);
@@ -117,6 +118,26 @@ public class MyProfileFragment extends Fragment {
         } else {
             dp.setImageResource(R.drawable.nouser);
         }
+
+        //UPI ID
+
+        firebaseDatabase.getReference().child("suppliers/" + user.getUid() + "/upiId").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    upiIdText.setText(dataSnapshot.getValue().toString());
+                    userUpiId = dataSnapshot.getValue().toString();
+                } else {
+                    upiIdText.setText("UPI ID not set.Tap on edit profile to set UPI Id");
+                    upiIdText.setTextSize(15);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         //Add tags Btn
 
@@ -168,7 +189,7 @@ public class MyProfileFragment extends Fragment {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setTitle("Edit Profile");
                 builder.setItems(new CharSequence[]
-                                {"Edit Profile Picture", "Edit SMS Template"},
+                                {"Edit Profile Picture", "Edit SMS Template", "Edit UPI Id"},
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
@@ -178,6 +199,9 @@ public class MyProfileFragment extends Fragment {
 
                                     case 1:
                                         editProfile(1);
+                                        break;
+                                    case 2:
+                                        editUpiId();
                                         break;
                                 }
                             }
@@ -212,6 +236,46 @@ public class MyProfileFragment extends Fragment {
             }
         });
         return root;
+    }
+
+    public void editUpiId() {
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+        bottomSheetDialog.setContentView(R.layout.edit_upi_id_sheet);
+
+        bottomSheetDialog.show();
+        Button upiBtn = bottomSheetDialog.findViewById(R.id.updateUpiBtn);
+        final EditText upiInput = bottomSheetDialog.findViewById(R.id.upiIdInput);
+        if (!userUpiId.equals("")) {
+            upiInput.setText(userUpiId);
+        }
+
+        upiBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!upiInput.getText().toString().trim().equals("")) {
+                    final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Please wait...");
+                    firebaseDatabase.getReference().child("suppliers/" + firebaseAuth.getCurrentUser().getUid() + "/upiId").setValue(upiInput.getText().toString().trim()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            progressDialog.dismiss();
+                            bottomSheetDialog.dismiss();
+                            userUpiId = upiInput.getText().toString().trim();
+                            upiIdText.setText(upiInput.getText().toString().trim());
+                            upiIdText.setTextSize(17);
+                            Toast.makeText(getContext(), "UPI Id updated successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(getContext(), "Please try again", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getContext(), "Enter UPI Id", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     public void editProfile(int type) {
@@ -350,12 +414,12 @@ public class MyProfileFragment extends Fragment {
                                 user.updateProfile(profileUpdates);
                                 Picasso.with(getContext()).load(url).into(dp);
 
-                               writeJsonData("supplierdetails.json",url.toString());
-                               SharedPreferences sharedPreferences = getContext().getSharedPreferences("local",Context.MODE_PRIVATE);
-                               SharedPreferences.Editor editor = sharedPreferences.edit();
-                               editor.putBoolean("isChange",true);
-                               editor.putString("url",url.toString());
-                               editor.apply();
+                                writeJsonData("supplierdetails.json", url.toString());
+                                SharedPreferences sharedPreferences = getContext().getSharedPreferences("local", Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putBoolean("isChange", true);
+                                editor.putString("url", url.toString());
+                                editor.apply();
 
                                 firebaseDatabase.getReference().child("suppliers/").child(user.getUid()).child("photo").setValue(url.toString()).addOnFailureListener(new OnFailureListener() {
                                     @Override
@@ -528,7 +592,7 @@ public class MyProfileFragment extends Fragment {
             JSONObject jsonObject = new JSONObject(mResponse);
 
             if (!jsonObject.get("SUPPLIERLOGO").toString().equals("")) {
-                jsonObject.put("SUPPLIERLOGO",url);
+                jsonObject.put("SUPPLIERLOGO", url);
             }
 
         } catch (IOException e) {

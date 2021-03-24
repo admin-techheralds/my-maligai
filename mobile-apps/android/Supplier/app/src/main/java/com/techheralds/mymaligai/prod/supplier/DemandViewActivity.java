@@ -61,12 +61,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DemandViewActivity extends AppCompatActivity {
     String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
+    String isPaid, payment_mode;
     double price;
     ArrayList<Map<String, Object>> demandList, timeline;
     FirebaseAuth firebaseAuth;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
-    TextView nameTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, timelineHint, rejectionHeader, rejectionText;
+    TextView nameTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, timelineHint, rejectionHeader, rejectionText, paymentMode, paid, paidHint;
     CircleImageView dp;
     Spinner statusSpinner;
     ArrayList<String> statusArr = new ArrayList<String>();
@@ -136,6 +137,8 @@ public class DemandViewActivity extends AppCompatActivity {
         price = b.getDouble("price");
         address = i.getExtras().getString("address");
         rejectionReason = i.getExtras().getString("rejectionReason");
+        isPaid = i.getExtras().getString("paid");
+        payment_mode = i.getExtras().getString("payment_mode");
 
         rejectionHeader = findViewById(R.id.rjectionHeader);
         rejectionText = findViewById(R.id.rejectionReason);
@@ -199,6 +202,9 @@ public class DemandViewActivity extends AppCompatActivity {
         addressText = findViewById(R.id.deliveryAddress);
         totalItemstext = findViewById(R.id.totalItems);
         viewOrdersBtn = findViewById(R.id.viewOrdersBtn);
+        paymentMode = findViewById(R.id.paymentMode);
+        paid = findViewById(R.id.isPaid);
+        paidHint = findViewById(R.id.paidHint);
 
         orderIdText.setText(key);
         nameTxt.setText(name);
@@ -207,6 +213,42 @@ public class DemandViewActivity extends AppCompatActivity {
         addressText.setText(address);
         totalItemstext.setText(demandList.size() == 1 ? demandList.size() + " Item" : demandList.size() + " Items");
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+
+        if (payment_mode != null) {
+            paymentMode.setText(!payment_mode.equals("") ? payment_mode.toUpperCase() : "None");
+        } else {
+            paymentMode.setText("None");
+        }
+
+        if (isPaid != null) {
+            if (!isPaid.equals("")) {
+                if (isPaid.equalsIgnoreCase("paid")) {
+                    paid.setText("Paid");
+                } else {
+                    paid.setText("Not Paid");
+                    paidHint.setVisibility(View.VISIBLE);
+                }
+            } else {
+                paid.setText("Not Paid");
+                paidHint.setVisibility(View.VISIBLE);
+            }
+        } else {
+            paid.setText("Not Paid");
+            paidHint.setVisibility(View.VISIBLE);
+        }
+
+        paid.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isPaid != null) {
+                    if (!isPaid.equalsIgnoreCase("paid")) {
+                        changeToPaid();
+                    }
+                } else {
+                    changeToPaid();
+                }
+            }
+        });
 
         String moneyString = formatter.format(price);
         priceText.setText(moneyString);
@@ -269,52 +311,30 @@ public class DemandViewActivity extends AppCompatActivity {
                     if (statusArr.get(position).equalsIgnoreCase("accepted")) {
                         show_Datepicker();
                     } else if (statusArr.get(position).equalsIgnoreCase("delivered")) {
-                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
-                        firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
-                                    Map<String, Object> data = new HashMap<>();
-                                    data.put("status", "Delivered");
-                                    data.put("deliveryTime", currTime);
+                        if (isPaid.equalsIgnoreCase("paid")) {
+                            orderDelivered(false); //Already Paid
+                        } else {
+                            new AlertDialog.Builder(DemandViewActivity.this)
+                                    .setTitle("Amount Paid")
+                                    .setMessage("Total amount for this order is paid?")
 
-                                    Map<String, Object> timeLineData = new HashMap<>();
-
-                                    timeLineData.put("status", "Delivered");
-                                    timeLineData.put("date", currTime);
-                                    timeline.add(timeLineData);
-                                    data.put("timeLine", timeline);
-
-                                    firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void aVoid) {
-                                            progressDialog.dismiss();
-                                            Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
-                                            startActivity(intent);
+                                    // Specifying a listener allows you to take an action before dismissing the dialog.
+                                    // The dialog is automatically dismissed when a dialog button is clicked.
+                                    .setPositiveButton("Paid", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            orderDelivered(true); //Paid
                                         }
-                                    }).addOnFailureListener(new OnFailureListener() {
+                                    })
+
+                                    // A null listener allows the button to dismiss the dialog and take no further action.
+                                    .setNegativeButton("Not Paid", new DialogInterface.OnClickListener() {
                                         @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            progressDialog.dismiss();
-                                            Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            orderDelivered(false); //Not Paid
                                         }
-                                    });
-                                } else {
-                                    progressDialog.dismiss();
-                                    statusArr.clear();
-                                    statusArr.add("Cancelled");
-                                    deliveryTextHeader.setText("Cancelled On");
-                                    Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer", Toast.LENGTH_LONG).show();
-                                }
-
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                            }
-                        });
-
+                                    })
+                                    .show();
+                        }
                     } else if (statusArr.get(position).equalsIgnoreCase("placed")) {
 
                         final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
@@ -453,6 +473,91 @@ public class DemandViewActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    private void changeToPaid() {
+        new AlertDialog.Builder(DemandViewActivity.this)
+                .setTitle("Amount Paid")
+                .setMessage("Total amount for this order is paid?")
+                .setPositiveButton("Paid", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please Wait...");
+
+                        firebaseDatabase.getReference().child("demands/" + key + "/paid").setValue("paid").addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                progressDialog.dismiss();
+                                Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                                startActivity(intent);
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                progressDialog.dismiss();
+                                Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                })
+                .setNegativeButton("Not Paid", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        orderDelivered(false); //Not Paid
+                    }
+                })
+                .show();
+    }
+
+    private void orderDelivered(final Boolean isPaid) {
+        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
+        firebaseDatabase.getReference().child("demands/" + key + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.getValue().toString().equalsIgnoreCase("cancelled")) {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("status", "Delivered");
+                    data.put("deliveryTime", currTime);
+
+                    if (isPaid) {
+                        data.put("paid", "paid");
+                    }
+
+                    Map<String, Object> timeLineData = new HashMap<>();
+
+                    timeLineData.put("status", "Delivered");
+                    timeLineData.put("date", currTime);
+                    timeline.add(timeLineData);
+                    data.put("timeLine", timeline);
+
+                    firebaseDatabase.getReference().child("demands/" + key).updateChildren(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            progressDialog.dismiss();
+                            Intent intent = new Intent(DemandViewActivity.this, MainActivity.class);
+                            startActivity(intent);
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(DemandViewActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    progressDialog.dismiss();
+                    statusArr.clear();
+                    statusArr.add("Cancelled");
+                    deliveryTextHeader.setText("Cancelled On");
+                    Toast.makeText(DemandViewActivity.this, "Order cancelled by the customer", Toast.LENGTH_LONG).show();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         });

@@ -15,8 +15,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.icu.text.NumberFormat;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,6 +38,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -42,6 +48,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -49,6 +56,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.shreyaspatil.EasyUpiPayment.EasyUpiPayment;
+import com.shreyaspatil.EasyUpiPayment.listener.PaymentStatusListener;
+import com.shreyaspatil.EasyUpiPayment.model.TransactionDetails;
 import com.squareup.picasso.Picasso;
 import com.techheralds.mymaligai.prod.customer.R;
 
@@ -58,11 +68,17 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,7 +86,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import jxl.Image;
 
 public class PlaceOrderActivity extends AppCompatActivity {
-    String supplierUid, supplierName, supplierPhoneNumber, supplierDp;
+    final int UPI_PAYMENT = 101;
+    String supplierUid, supplierName, supplierPhoneNumber, supplierDp, supplierUpiId = "";
     TextView nameText;
     CircleImageView dpImageView;
     EditText deliveryTImeBtn;
@@ -81,7 +98,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
     String currTag = "";
-    ArrayList<inventory> inventoryItems, tempArray;
+    ArrayList<inventory> inventoryItems, tempArray, searchArr;
     inventoryAdapterList inventoryAdapterList;
     ListView inventoryItemListView;
     String currTime;
@@ -105,11 +122,41 @@ public class PlaceOrderActivity extends AppCompatActivity {
     SearchView searchView;
     BottomSheetDialog bottomSheetDialog;
 
+    //Search Sheet
+    BottomSheetDialog searchSheet;
+    int searchIndex = 0;
+    LinearLayout searchLinearLayout;
+    ListView searchListView;
+    ProgressDialog searchProgressDialog;
+    TextView searchTextView;
+    //   demand tempDemand;
+    String generatedKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_order);
 
+        //Search View
+        searchSheet = new BottomSheetDialog(PlaceOrderActivity.this);
+        searchSheet.setContentView(R.layout.search_sheet);
+        searchTextView = searchSheet.findViewById(R.id.textView);
+
+        searchProgressDialog = new ProgressDialog(PlaceOrderActivity.this);
+
+        searchView = searchSheet.findViewById(R.id.searchView);
+        searchLinearLayout = searchSheet.findViewById(R.id.linearLayout);
+        searchListView = searchSheet.findViewById(R.id.listView);
+
+        searchSheet.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                inventoryAdapterList = new inventoryAdapterList(PlaceOrderActivity.this, inventoryItems);
+                inventoryItemListView.setAdapter(inventoryAdapterList);
+            }
+        });
+        searchView.setIconified(false);
+        searchView.setQueryHint("Search...");
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Place Order");
@@ -224,11 +271,13 @@ public class PlaceOrderActivity extends AppCompatActivity {
             }
         });*/
 
+
         tempTags = new ArrayList<>();
 
         demandsArr = new ArrayList<>();
         tempDemandsArr = new ArrayList<>();
         arrtoFindIndex = new ArrayList<>();
+        searchArr = new ArrayList<>();
 
         mYear = Calendar.getInstance().get(Calendar.YEAR);
         mMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
@@ -271,7 +320,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
         calendar.add(Calendar.HOUR_OF_DAY, 6);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/mm/yyyy, hh:mm a");
-     //   deliveryTImeBtn.setText(simpleDateFormat.format(calendar.getTime()));
+        //   deliveryTImeBtn.setText(simpleDateFormat.format(calendar.getTime()));
 
 
         if (supplierDp.equals("")) {
@@ -328,6 +377,20 @@ public class PlaceOrderActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(PlaceOrderActivity.this, "Can't Load Data", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        firebaseDatabase.getReference().child("suppliers/" + supplierUid + "/upiId").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    supplierUpiId = dataSnapshot.getValue().toString();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
@@ -418,6 +481,17 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
                             final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(PlaceOrderActivity.this);
                             bottomSheetDialog.setContentView(R.layout.place_order_sheet);
+                            RadioGroup radioGroup;
+                            RadioButton codBtn, upiBtn;
+                            radioGroup = bottomSheetDialog.findViewById(R.id.radioGroup);
+                            codBtn = bottomSheetDialog.findViewById(R.id.payment_cod);
+                            upiBtn = bottomSheetDialog.findViewById(R.id.payment_upi);
+
+                            if (supplierUpiId.equals("")) {
+                                codBtn.setChecked(true);
+                                upiBtn.setVisibility(View.GONE);
+                            }
+
 
                             final Button btn, addBtn;
                             btn = bottomSheetDialog.findViewById(R.id.placeOrderBtn);
@@ -428,6 +502,23 @@ public class PlaceOrderActivity extends AppCompatActivity {
                             totalMrp = bottomSheetDialog.findViewById(R.id.totalMrp);
                             address = bottomSheetDialog.findViewById(R.id.address);
                             date = bottomSheetDialog.findViewById(R.id.date);
+                            final String[] selectedPayment = {""};
+
+                            radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(RadioGroup rg, int i) {
+                                    switch (i) {
+                                        case R.id.payment_cod:
+                                            selectedPayment[0] = "cod";
+                                            btn.setText("Place Order");
+                                            break;
+                                        case R.id.payment_upi:
+                                            selectedPayment[0] = "upi";
+                                            btn.setText("Continue");
+                                            break;
+                                    }
+                                }
+                            });
 
                             addBtn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -504,33 +595,108 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                     final String deliveryAddress = sharedPreferences.getString("address", "");
 
                                     if (!deliveryAddress.equals("")) {
-                                        bottomSheetDialog.dismiss();
-                                        final ProgressDialog progressDialog = ProgressDialog.show(PlaceOrderActivity.this, null, "Placing Order.Please Wait...");
-                                        final String key = firebaseDatabase.getReference().child("demands").push().getKey();
-
-                                        ArrayList<Map<String, Object>> timeLine = new ArrayList<>();
+                                        final ArrayList<Map<String, Object>> timeLine = new ArrayList<>();
                                         Map<String, Object> timeLineData = new HashMap<>();
 
                                         timeLineData.put("status", "Placed");
                                         timeLineData.put("date", currTime);
                                         timeLine.add(timeLineData);
+                                        generatedKey = firebaseDatabase.getReference().child("demands").push().getKey();
 
-                                        demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, timeLine, key, deliveryAddress, totalAmount, "cod", null);
-                                        firebaseDatabase.getReference().child("demands/" + key).setValue(newDemand).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                progressDialog.dismiss();
-                                                Intent intent = new Intent(PlaceOrderActivity.this, MainActivity.class);
-                                                startActivity(intent);
-                                                finish();
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                progressDialog.dismiss();
-                                                Toast.makeText(ctx, "Error occurred.Try again", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
+                                        if (selectedPayment[0].equals("cod")) {
+                                            bottomSheetDialog.dismiss();
+                                            final ProgressDialog progressDialog = ProgressDialog.show(PlaceOrderActivity.this, null, "Placing Order.Please Wait...");
+
+                                            demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, timeLine, generatedKey, deliveryAddress, totalAmount, selectedPayment[0], null, "not paid");
+                                            firebaseDatabase.getReference().child("demands/" + generatedKey).setValue(newDemand).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    progressDialog.dismiss();
+                                                    Intent intent = new Intent(PlaceOrderActivity.this, MainActivity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    progressDialog.dismiss();
+                                                    Toast.makeText(ctx, "Error occurred.Try again", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        } else {
+                                            //  tempDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, timeLine, generatedKey, deliveryAddress, totalAmount, selectedPayment[0], null,true);
+                                            Random random = new Random();
+                                            long n = (long) (100000000000000L + random.nextFloat() * 900000000000000L);
+                                            String transactionId = String.valueOf(n);
+                                            String price = String.valueOf(Double.valueOf(String.valueOf(Math.round(totalAmount))));
+
+                                            final EasyUpiPayment easyUpiPayment = new EasyUpiPayment.Builder()
+                                                    .with(PlaceOrderActivity.this)
+                                                    .setPayeeVpa(supplierUpiId)
+                                                    .setPayeeName(supplierName)
+                                                    .setTransactionId(transactionId)
+                                                    .setTransactionRefId(generatedKey)
+                                                    .setDescription("From My-Maligai")
+                                                    .setAmount(price)
+                                                    .build();
+
+                                            easyUpiPayment.startPayment();
+
+                                            final TransactionDetails[] tempTransactionDetails = new TransactionDetails[1];
+
+                                            easyUpiPayment.setPaymentStatusListener(new PaymentStatusListener() {
+                                                @Override
+                                                public void onTransactionCompleted(TransactionDetails transactionDetails) {
+                                                    //  Toast.makeText(PlaceOrderActivity.this, "Payment Completed", Toast.LENGTH_SHORT).show();
+                                                    tempTransactionDetails[0] = transactionDetails;
+                                                }
+
+                                                @Override
+                                                public void onTransactionSuccess() {
+                                                    Toast.makeText(PlaceOrderActivity.this, "Payment Success", Toast.LENGTH_SHORT).show();
+                                                    bottomSheetDialog.dismiss();
+                                                    final ProgressDialog progressDialog = ProgressDialog.show(PlaceOrderActivity.this, null, "Placing Order.Please Wait...");
+
+                                                    demand newDemand = new demand(firebaseUser.getUid(), supplierUid, dTime, "placed", currTime, demandsArr, timeLine, generatedKey, deliveryAddress, totalAmount, selectedPayment[0], null, "paid");
+                                                    firebaseDatabase.getReference().child("demands/" + generatedKey).setValue(newDemand).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void aVoid) {
+                                                            firebaseDatabase.getReference().child("demands/" + generatedKey + "/payment").setValue(tempTransactionDetails[0]);
+                                                            progressDialog.dismiss();
+                                                            Intent intent = new Intent(PlaceOrderActivity.this, MainActivity.class);
+                                                            startActivity(intent);
+                                                            finish();
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            progressDialog.dismiss();
+                                                            Toast.makeText(ctx, "Error occurred.Try again", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onTransactionSubmitted() {
+                                                    // Toast.makeText(PlaceOrderActivity.this, "Pending | Subbmited", Toast.LENGTH_SHORT).show();
+                                                }
+
+                                                @Override
+                                                public void onTransactionFailed() {
+                                                    Toast.makeText(PlaceOrderActivity.this, "Payment Failed", Toast.LENGTH_SHORT).show();
+                                                }
+
+                                                @Override
+                                                public void onTransactionCancelled() {
+                                                    Toast.makeText(PlaceOrderActivity.this, "Payment Cancelled", Toast.LENGTH_SHORT).show();
+                                                }
+
+                                                @Override
+                                                public void onAppNotFound() {
+                                                    Toast.makeText(PlaceOrderActivity.this, "No UPI app found, please install one to continue", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }
                                     } else {
                                         Toast.makeText(PlaceOrderActivity.this, "Add Delivery Address", Toast.LENGTH_SHORT).show();
                                     }
@@ -570,9 +736,100 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     Toast.makeText(ctx, "No items added to cart", Toast.LENGTH_SHORT).show();
                 }
                 break;
+
+            case R.id.searchBtn:
+                searchSheet.show();
+
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String s) {
+                        if (!s.trim().equals("")) {
+                            searchIndex = 0;
+                            searchArr.clear();
+                            searchProgressDialog.setMessage("Searching...");
+                            searchProgressDialog.show();
+                            search(s);
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String s) {
+                        return false;
+                    }
+                });
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static boolean isConnectionAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
+            if (netInfo != null && netInfo.isConnected()
+                    && netInfo.isConnectedOrConnecting()
+                    && netInfo.isAvailable()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void search(final String s) {
+        firebaseDatabase.getReference().child("inventory/" + supplierUid + "/" + tags.get(searchIndex).get("id")).orderByChild("searchname")
+                .startAt(s.toLowerCase().trim())
+                .endAt(s.toLowerCase().trim() + "\uf8ff").addListenerForSingleValueEvent(new ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) {
+                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                        inventory data = ds.getValue(inventory.class);
+                        // Toast.makeText(ctx, "S "+data.getSku(), Toast.LENGTH_SHORT).show();
+                        if (findIndexOf(data.getSku()) == -1) {
+                            searchArr.add(data);
+                        }
+                    }
+                }
+
+                searchIndex++;
+                if (searchIndex >= 1) {
+                    if (searchIndex < tags.size()) {
+                        search(s);
+
+                    } else {
+                        if (searchArr.size() > 0) {
+                            searchLinearLayout.setVisibility(View.GONE);
+                        } else {
+                            searchTextView.setText("No Results for '" + s + "'");
+                            searchLinearLayout.setVisibility(View.VISIBLE);
+                        }
+                        searchProgressDialog.dismiss();
+                        inventoryAdapterList = new inventoryAdapterList(PlaceOrderActivity.this, searchArr);
+                        searchListView.setAdapter(inventoryAdapterList);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public int findIndexOf(String itemName) {
+        int index = -1;
+        for (int i = 0; i < searchArr.size(); i++) {
+            if (searchArr.get(i).getSku().trim().toLowerCase().equals(itemName.toLowerCase())) {
+                index = i;
+            }
+        }
+
+        return index;
     }
 
     private void setupBadge() {
@@ -939,8 +1196,9 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
+
 
         @SuppressLint({"ViewHolder", "SetTextI18n"})
         @RequiresApi(api = Build.VERSION_CODES.N)
@@ -1099,7 +1357,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (demandsArr.size() > 0) {
-            new AlertDialog.Builder(PlaceOrderActivity.this).setTitle("Hold On!").setMessage("This order will be cancelled.Are you sureo go back?").setNegativeButton("Stay here", null)
+            new AlertDialog.Builder(PlaceOrderActivity.this).setTitle("Hold On!").setMessage("This order will be cancelled.Are you sure to go back?").setNegativeButton("Stay here", null)
                     .setPositiveButton("Cancel Order", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

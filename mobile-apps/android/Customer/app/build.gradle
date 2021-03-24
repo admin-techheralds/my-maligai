@@ -6,10 +6,10 @@ android {
     buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.techheralds.mymaligai.prod.customer"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 29
-        versionCode 10
-        versionName "2.0.0"
+        versionCode 12
+        versionName "4.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -76,4 +76,6 @@ dependencies {
 
     //Timline Widget
     implementation 'com.github.vipulasri:timelineview:1.1.5'
+
+    implementation 'com.shreyaspatil:EasyUpiPayment:2.0'
 }

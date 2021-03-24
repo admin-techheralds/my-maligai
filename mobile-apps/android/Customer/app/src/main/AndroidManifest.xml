@@ -31,6 +31,15 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+        <!-- Keep it false in production environment-->
+        <meta-data
+            android:name="com.phonepe.android.sdk.Debuggable"
+            android:value="true"/>
+        <!-- Keep it false in production environment-->
+        <meta-data
+            android:name="com.phonepe.android.sdk.isUAT"
+            android:value="true"/>
     </application>
 
 </manifest>

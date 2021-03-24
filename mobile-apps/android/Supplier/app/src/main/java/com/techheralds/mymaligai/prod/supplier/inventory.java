@@ -14,11 +14,12 @@ public class inventory {
     String created_mode;
     int in_stock;
     String sku;
+    String searchname;
 
     public inventory() {
     }
 
-    public inventory(String name, int quantity_type, String img, float price, int active, String attr1, String attr2, String attr3, String bulk_import_id, long created_date, String created_mode, int in_stock, String sku) {
+    public inventory(String name, int quantity_type, String img, float price, int active, String attr1, String attr2, String attr3, String bulk_import_id, long created_date, String created_mode, int in_stock, String sku, String searchname) {
         this.name = name;
         this.quantity_type = quantity_type;
         this.img = img;
@@ -32,6 +33,7 @@ public class inventory {
         this.created_mode = created_mode;
         this.in_stock = in_stock;
         this.sku = sku;
+        this.searchname = searchname;
     }
 
     public String getName() {
@@ -136,5 +138,13 @@ public class inventory {
 
     public void setSku(String sku) {
         this.sku = sku;
+    }
+
+    public String getSearchname() {
+        return searchname;
+    }
+
+    public void setSearchname(String searchname) {
+        this.searchname = searchname;
     }
 }

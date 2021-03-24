@@ -51,14 +51,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="Account Type"
+                android:text="UPI Id"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/profileUserType"
+                android:id="@+id/upiId"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Supplier"
                 android:textColor="#222"
                 android:textSize="17dp"
                 android:textStyle="bold" />

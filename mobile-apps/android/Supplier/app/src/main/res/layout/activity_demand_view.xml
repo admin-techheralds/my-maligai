@@ -74,21 +74,22 @@
             android:id="@+id/statusSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
         <TextView
             android:id="@+id/timelineHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tap for timeline details"
-            android:textStyle="bold"
-            />
+            android:text="Tap here for timeline details"
+            android:textStyle="bold" />
+
         <TextView
             android:id="@+id/rjectionHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Reason for Rejection"
-            android:visibility="gone"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/rejectionReason"
@@ -96,10 +97,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textColor="#222"
-            android:visibility="gone"
             android:textSize="16dp"
-            android:textStyle="bold" />
-
+            android:textStyle="bold"
+            android:visibility="gone" />
 
 
         <TextView
@@ -132,6 +132,48 @@
             android:layout_marginTop="5dp"
             android:textColor="#222"
             android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Payment Mode"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/paymentMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="#222"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Amount Paid"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/isPaid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="#222"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/paidHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="Tap to change to paid"
+            android:textSize="12dp"
+            android:visibility="gone"
             android:textStyle="bold" />
 
         <TextView

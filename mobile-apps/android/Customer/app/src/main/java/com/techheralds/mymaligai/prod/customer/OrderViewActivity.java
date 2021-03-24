@@ -51,12 +51,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class OrderViewActivity extends AppCompatActivity {
     String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
+    String isPaid, payment_mode;
     double price;
     ArrayList<Map<String, Object>> demandList, timeline;
     FirebaseAuth firebaseAuth;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
-    TextView nameTxt, demandStatusTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, rejectionHeader, rejectionText;
+    TextView nameTxt, demandStatusTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, rejectionHeader, rejectionText, paymentMode, paid;
     CircleImageView dp;
     ArrayList<String> statusArr = new ArrayList<>();
     itemsAdapterList adapterList;
@@ -116,6 +117,8 @@ public class OrderViewActivity extends AppCompatActivity {
         price = b.getDouble("price");
         address = i.getExtras().getString("address");
         rejectionReason = i.getExtras().getString("rejectionReason");
+        isPaid = i.getExtras().getString("paid");
+        payment_mode = i.getExtras().getString("payment_mode");
 
         deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
 
@@ -148,6 +151,8 @@ public class OrderViewActivity extends AppCompatActivity {
         addressText = findViewById(R.id.deliveryAddress);
         totalItemstext = findViewById(R.id.totalItems);
         viewOrdersBtn = findViewById(R.id.viewOrdersBtn);
+        paymentMode = findViewById(R.id.paymentMode);
+        paid = findViewById(R.id.isPaid);
 
         orderIdText.setText(key);
         nameTxt.setText(name);
@@ -157,6 +162,19 @@ public class OrderViewActivity extends AppCompatActivity {
         deliveryTimeText.setText(deliveryTime);
         addressText.setText(address);
         totalItemstext.setText(demandList.size() == 1 ? demandList.size() + " Item" : demandList.size() + " Items");
+
+        if (payment_mode != null) {
+            paymentMode.setText(!payment_mode.equals("") ? payment_mode.toUpperCase() : "None");
+        } else {
+            paymentMode.setText("None");
+        }
+
+        if (isPaid != null) {
+            paid.setText(!isPaid.equals("") ? capitalize(isPaid) : "Not Paid");
+        } else {
+            paid.setText("Not Paid");
+        }
+
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
@@ -286,7 +304,7 @@ public class OrderViewActivity extends AppCompatActivity {
                     }
                 });
             }
-        }).setNegativeButton("Cancel", null).show();
+        }).show();
     }
 
     private String capitalize(String capString) {

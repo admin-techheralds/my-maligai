@@ -309,7 +309,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                                 firebaseStorage.getReference().child("images/" + firebaseUser.getUid() + "/" + currId + "/" + iName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                     @Override
                                                     public void onSuccess(Uri uri) {
-                                                        final inventory data = new inventory(iName, iQuantityType, uri.toString(), iPrice, active, finalIA, finalIA1, finalIA2, bulk_import_id, created_at, created_mode, in_stock, sku);
+                                                        final inventory data = new inventory(iName, iQuantityType, uri.toString(), iPrice, active, finalIA, finalIA1, finalIA2, bulk_import_id, created_at, created_mode, in_stock, sku,iName.toLowerCase());
                                                         firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + sku).setValue(data).addOnFailureListener(new OnFailureListener() {
                                                             @Override
                                                             public void onFailure(@NonNull Exception e) {
