@@ -214,7 +214,7 @@ public class OrderViewActivity extends AppCompatActivity {
                         .setPayeeName(name)
                         .setTransactionId(transactionId)
                         .setTransactionRefId(key)
-                        .setDescription("From My-Maligai")
+                        .setDescription("Annam Farm Veggies")
                         .setAmount(String.valueOf(price))
                         .build();
                 easyUpiPayment.startPayment();

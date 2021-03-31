@@ -637,7 +637,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                                     .setPayeeName(supplierName)
                                                     .setTransactionId(transactionId)
                                                     .setTransactionRefId(generatedKey)
-                                                    .setDescription("From My-Maligai")
+                                                    .setDescription("Annam Farm Veggies")
                                                     .setAmount(price)
                                                     .build();
 
