@@ -10,7 +10,11 @@
         android:name="com.techheralds.mymaligai.prod.supplier.ui.demands_list.DemandsListFragment"
         android:label="Orders List"
         tools:layout="@layout/fragment_demands_list" />
-
+    <fragment
+        android:id="@+id/nav_sales"
+        android:name="com.techheralds.mymaligai.prod.supplier.SalesFragment"
+        android:label="Sales"
+        tools:layout="@layout/fragment_sales" />
     <fragment
         android:id="@+id/nav_demands_report"
         android:name="com.techheralds.mymaligai.prod.supplier.ui.demands_report.DemandsReportFragment"

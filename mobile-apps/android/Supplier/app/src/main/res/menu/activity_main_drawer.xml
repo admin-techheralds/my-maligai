@@ -9,6 +9,10 @@
             android:icon="@drawable/demands_list"
             android:title="Orders List" />
         <item
+            android:id="@+id/nav_sales"
+            android:icon="@drawable/sales"
+            android:title="Sales" />
+        <item
             android:id="@+id/nav_demands_report"
             android:icon="@drawable/demand_report"
             android:title="Demands Report" />

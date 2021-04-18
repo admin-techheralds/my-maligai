@@ -6,23 +6,23 @@ const fs = require('fs');
 const path = require('path');
 var base64 = require('base-64');
 var request = require('request');
-const os = require('os'); 
+const os = require('os');
 const secureRandom = require('secure-random')
 
 
 // The Firebase Admin SDK to access Cloud Firestore.
 const admin = require('firebase-admin');
-var env =  "my-maligai";
-if(process.env.GCLOUD_PROJECT !== undefined) {
-  env =  process.env.GCLOUD_PROJECT;
+var env = "my-maligai";
+if (process.env.GCLOUD_PROJECT !== undefined) {
+  env = process.env.GCLOUD_PROJECT;
 }
 const { parseRequestAndDownloadFiles } = require('./lib/downloadFiles.js');
 const { processSupplierInventoryFiles } = require('./lib/processInventoryFile.js');
-const { startVMInstance, waitForVMInstance, stopVMInstance, waitForBuildToComplete, isVMUpAdRunning, triggerSupplierBuildRequest  } = require('./lib/gcpinstancehandler.js');
+const { startVMInstance, waitForVMInstance, stopVMInstance, waitForBuildToComplete, isVMUpAdRunning, triggerSupplierBuildRequest } = require('./lib/gcpinstancehandler.js');
 
 const development = (env === "supplier-customer")
 const credFile = env + "-service-account.json"
-const database = "https://" + env + ".firebaseio.com/"; 
+const database = "https://" + env + ".firebaseio.com/";
 const bucket_name = env + ".appspot.com";
 
 // process.env.GOOGLE_APPLICATION_CREDENTIALS=JSON.parse(base64.decode(fs.readFileSync(credFile)))
@@ -31,24 +31,24 @@ fs.writeFileSync(os.tmpdir() + path.sep + env + "-service-account-decoded.json",
 admin.initializeApp({
   credential: admin.credential.cert(JSON.parse(base64.decode(fs.readFileSync(credFile)))),
   databaseURL: database,
-  storageBucket : bucket_name
+  storageBucket: bucket_name
 });
 const auth = admin.auth();
 
 const build_env = require('./build_env.json');
 credFile['credFile'] = env + "-service-account-decoded.json"
-process.env.GOOGLE_APPLICATION_CREDENTIALS=os.tmpdir() + path.sep + env + "-service-account-decoded.json";
+process.env.GOOGLE_APPLICATION_CREDENTIALS = os.tmpdir() + path.sep + env + "-service-account-decoded.json";
 
 const express = require('express');
 const { networkInterfaces } = require('os');
 // const fileUpload = require('express-fileupload');
-const cors = require('cors')({origin: true});
+const cors = require('cors')({ origin: true });
 
 const app = express();
 // Automatically allow cross-origin requests
 app.use(cors);
 
-var BUILD_TRIGGER_URI="http://<EXTERNAL_IP>/triggerSupplierAppBuild"
+var BUILD_TRIGGER_URI = "http://<EXTERNAL_IP>/triggerSupplierAppBuild"
 
 findSupplierByName = function (name, cb) {
   console.log('Finding the Supplier by name:' + name);
@@ -141,7 +141,7 @@ isFileExistsIndexPage = function (filepath) {
   return flag;
 }
 
-uploadSingleInventoryImage = function(supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount, cb) {
+uploadSingleInventoryImage = function (supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount, cb) {
 
   console.log('For supplier:' + supplier_id + ', Uploading the single inventory item image file at index:' + current_item_index + "/" + inventories.length)
   var bucket = admin.storage().bucket();
@@ -175,7 +175,7 @@ uploadSingleInventoryImage = function(supplier_id, bulk_import_id, inventories, 
       })
     } else {
       //file doesnt exists in the file system
-      console.log('Failed to upload the item image file as the given file:' +  item_image_file + ' doesnot exist')
+      console.log('Failed to upload the item image file as the given file:' + item_image_file + ' doesnot exist')
       statusFlag = false
       errorCount++;
       return uploadInventoryImages(supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount, cb)
@@ -191,32 +191,32 @@ uploadSingleInventoryImage = function(supplier_id, bulk_import_id, inventories, 
 
 uploadInventoryImages = function (supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount, cb) {
 
-  if(current_item_index >= inventories.length - 1) {
+  if (current_item_index >= inventories.length - 1) {
     console.log('All the items might have been uploaded.')
-    if(errorCount > 0) {
+    if (errorCount > 0) {
       console.log('Some items might have been failed to upload.')
       return cb(new Error('Some of the item images are failed to upload'), "FAIL")
-    } else  {
+    } else {
       console.log('All items have been uploaded successfully')
       return cb(undefined, "SUCCESS")
     }
   }
-  setTimeout(function() {
+  setTimeout(function () {
     current_item_index++;
     uploadSingleInventoryImage(supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount, cb)
   }, 200)
 }
 
-getMaxComponentForSKU = function(value, maxchars) {
+getMaxComponentForSKU = function (value, maxchars) {
   value = value + ""
   value = value.replace(" ", "")
-  if(maxchars === undefined) {
-      maxchars  = 3
+  if (maxchars === undefined) {
+    maxchars = 3
   }
-  if(value.length >= maxchars) {
+  if (value.length >= maxchars) {
     return value.substr(0, maxchars)
   } else {
-    while(value.length < maxchars) {
+    while (value.length < maxchars) {
       value = "0" + value
     }
   }
@@ -227,13 +227,12 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-
 getsku = function (supplier_id, item, supplier_details) {
   sku = "sku"
   // sku += "-" + secureRandom.randomBuffer(5).toString('hex');
   sku += "-" + getMaxComponentForSKU(getRandomInt(999999) + "", 6);
 
-  if(supplier_details !== undefined && supplier_details['supplier_id'] !== undefined) {
+  if (supplier_details !== undefined && supplier_details['supplier_id'] !== undefined) {
     sku += "-" + supplier_details['supplier_id']
   } else {
     sku += "-" + getMaxComponentForSKU(supplier_id)
@@ -296,7 +295,7 @@ updateSupplierInventories = function (supplier_id, bulk_import_id, inventories, 
   //upload the images first for all the inventories
   //supplier_id, bulk_import_id, inventories, current_item_index, statusFlag, errorCount
   errorCount = 0;
-  uploadInventoryImages(supplier_id, bulk_import_id, inventories,  -1, false, errorCount, function (err, result) {
+  uploadInventoryImages(supplier_id, bulk_import_id, inventories, -1, false, errorCount, function (err, result) {
     if (err) {
       console.log("Failed to upload the items images. Error:" + err);
       return cb(err, "FAIL")
@@ -378,16 +377,16 @@ updateBuildResultsInToDatabase = function (supplier_id, build_id, build_results,
   var update_data = {};
 
   var keys = Object.keys(build_results);
-  keys.forEach(function(k) {
-    update_data['suppliers/' + supplier_id + '/build_details/' + build_id + '/' + k] =  build_results[k];
+  keys.forEach(function (k) {
+    update_data['suppliers/' + supplier_id + '/build_details/' + build_id + '/' + k] = build_results[k];
   });
 
-  update_data['suppliers/' + supplier_id + '/build_details/' + 'current_build_id'] =  build_id
-  if(build_results['status'] !== undefined) {
-    update_data['suppliers/' + supplier_id + '/build_details/' + 'status'] =  build_results['status']
+  update_data['suppliers/' + supplier_id + '/build_details/' + 'current_build_id'] = build_id
+  if (build_results['status'] !== undefined) {
+    update_data['suppliers/' + supplier_id + '/build_details/' + 'status'] = build_results['status']
   }
-  if(build_results['apk_file'] !== undefined) {
-    update_data['suppliers/' + supplier_id + '/build_details/' + 'apk_file'] =  build_results['apk_file']
+  if (build_results['apk_file'] !== undefined) {
+    update_data['suppliers/' + supplier_id + '/build_details/' + 'apk_file'] = build_results['apk_file']
   }
 
   supplier.update(update_data).then(function () {
@@ -399,28 +398,28 @@ updateBuildResultsInToDatabase = function (supplier_id, build_id, build_results,
   });
 }
 
-getSupplierAPKFileFromFolder = function(supplier_name, folder, cb) {
+getSupplierAPKFileFromFolder = function (supplier_name, folder, cb) {
   console.log("Searching for supplier:" + supplier_name + " apk file in folder:" + folder);
   console.log("Updating spaces if it is present in the file name");
   supplier_name = supplier_name.replace(" ", "_");
   console.log("Updating supplier name to look for apk file is:" + supplier_name);
-  
+
   fs.readdir(folder, function (err, files) {
     if (err) {
       console.log("Error occurred while listing/reading the folder content from folder:" + folder + ", Error:" + err);
       return cb(err, "FAIL");
-    } 
+    }
     var found = false;
     var supplier_apk_file = undefined;
     files.forEach(function (file) {
-      if(file.toLocaleLowerCase().startsWith(supplier_name.toLocaleLowerCase())
+      if (file.toLocaleLowerCase().startsWith(supplier_name.toLocaleLowerCase())
         && file.toLocaleLowerCase().endsWith(".apk")) {
-          found = true;
-          supplier_apk_file = file;
-          return true;
+        found = true;
+        supplier_apk_file = file;
+        return true;
       }
     });
-    if(found) {
+    if (found) {
       console.log("Found the supplier apk file:" + supplier_apk_file);
       return cb(undefined, supplier_apk_file);
     }
@@ -429,13 +428,13 @@ getSupplierAPKFileFromFolder = function(supplier_name, folder, cb) {
   });
 }
 
-getFileNameAlone = function(file) {
+getFileNameAlone = function (file) {
   var index = file.lastIndexOf('\\');
-  if(index === -1) {
-      index = file.lastIndexOf('/');
+  if (index === -1) {
+    index = file.lastIndexOf('/');
   }
-  if(index === -1) {
-      return file;
+  if (index === -1) {
+    return file;
   }
   return file.substring(index + 1);
 }
@@ -491,10 +490,10 @@ uploadSupplierBuildAPKLogFiles = function (supplier_id, build_id, files, cb) {
   });
 }
 
-getFileURLById = function(id, files) {
+getFileURLById = function (id, files) {
   var url = undefined;
-  files.forEach(function(item) {
-    if(item['id'] === id) {
+  files.forEach(function (item) {
+    if (item['id'] === id) {
       url = item['file_url'];
       return true;
     }
@@ -502,28 +501,28 @@ getFileURLById = function(id, files) {
   return url;
 }
 
-getSupplierDetails = function(supplier_id, cb) {
+getSupplierDetails = function (supplier_id, cb) {
   console.log("Getting the supplier details for the given id:" + supplier_id);
   var suppliers = admin.database().ref('suppliers');
   var found = false;
   var supplier_details = undefined;
-  suppliers.once('value', function(snapshot) {
-    snapshot.forEach(function(supplier) {
+  suppliers.once('value', function (snapshot) {
+    snapshot.forEach(function (supplier) {
       var id = supplier.key;
       var details = supplier.val();
-      if(id === supplier_id && details['status']) {
+      if (id === supplier_id && details['status']) {
         console.log('Found the supplier details for the given id:' + supplier_id);
         supplier_details = details;
         found = true;
         return true;
       }
     });
-    if(found) {
+    if (found) {
       return cb(undefined, supplier_details);
     } else {
       return cb(new Error("Supplier is not found for the given supplier_id:" + supplier_id), undefined);
     }
-  }).catch(function(err) {
+  }).catch(function (err) {
     console.log('Failed to get the suppliers details. Error:' + err);
     return cb(err, undefined);
   });
@@ -557,7 +556,7 @@ app.post('/uploadAndProcessSupplierInventories', function (req, res) {
       })
     }
 
-    getSupplierDetails(supplier_id, function(err, supplier_details) {
+    getSupplierDetails(supplier_id, function (err, supplier_details) {
       if (err) {
         console.log('Error while getting the supplier details for the given supplier id. Error:' + err)
         return res.status(400).json({
@@ -637,163 +636,163 @@ app.post('/uploadAndProcessSupplierInventories', function (req, res) {
   });
 });
 
-getVMExternalIP = function(results) {
+getVMExternalIP = function (results) {
   const networkInterfaces = results.metadata.networkInterfaces;
   console.log("Nework interfaces:" + JSON.stringify(networkInterfaces));
-  if(networkInterfaces === undefined || networkInterfaces.length <= 0) {
+  if (networkInterfaces === undefined || networkInterfaces.length <= 0) {
     console.log('Network interfaces are found to be invalid from the VM instance data');
     return undefined;
   }
 
   const accessConfigs = networkInterfaces[0].accessConfigs;
   console.log("Access Configs:" + JSON.stringify(accessConfigs));
-  if(accessConfigs === undefined || accessConfigs.length <= 0 ) {
+  if (accessConfigs === undefined || accessConfigs.length <= 0) {
     console.log('Failed to get the external network data(access configs)found to be invalid from the VM instance data');
     return undefined;
   }
   return accessConfigs[0].natIP;
 }
 
-app.get('/isBuildEnvironmentRunning', function(req, res) {
-  isVMUpAdRunning(build_env, function(err, result) {
-    if(err) {
+app.get('/isBuildEnvironmentRunning', function (req, res) {
+  isVMUpAdRunning(build_env, function (err, result) {
+    if (err) {
       console.log('Failed in checking the build environment. Error:' + err)
-      return res.status(400).json( {
-        error : err
+      return res.status(400).json({
+        error: err
       })
     }
     console.log("Build Environment up/running:" + result);
-    res.status(200).json( {
-      status : result
+    res.status(200).json({
+      status: result
     });
   });
 })
 
-app.post('/startBuildEnvironment', function(req, res) {
-  startVMInstance(build_env, function(err, result) {
-    if(err) {
+app.post('/startBuildEnvironment', function (req, res) {
+  startVMInstance(build_env, function (err, result) {
+    if (err) {
       console.log('Failed in starting the build environment. Error:' + err)
-      return res.status(400).json( {
-        error : err
+      return res.status(400).json({
+        error: err
       })
     }
     console.log("Success in starting the build environment:" + result);
-    res.status(200).json( {
-      status : result
+    res.status(200).json({
+      status: result
     });
   });
 });
 
-app.post('/stopBuildEnvironment', function(req, res) {
-  stopVMInstance(build_env, function(err, result) {
-    if(err) {
+app.post('/stopBuildEnvironment', function (req, res) {
+  stopVMInstance(build_env, function (err, result) {
+    if (err) {
       console.log('Failed in stopping the build environment. Error:' + err)
-      return res.status(400).json( {
-        error : err
+      return res.status(400).json({
+        error: err
       })
     }
     console.log("Success in stopping the build environment:" + result);
-    res.status(200).json( {
-      status : result
+    res.status(200).json({
+      status: result
     });
   });
 });
 
-app.post('/waitBuildEnvironment', function(req, res) {
-  waitForVMInstance(build_env, function(err, result) {
-    if(err) {
+app.post('/waitBuildEnvironment', function (req, res) {
+  waitForVMInstance(build_env, function (err, result) {
+    if (err) {
       console.log('Failed in waiting for the build environment. Error:' + err)
-      return res.status(400).json( {
-        error : err
+      return res.status(400).json({
+        error: err
       })
     }
     console.log("Success in getting the build environment:" + result);
-    res.status(200).json( {
-      status : result
+    res.status(200).json({
+      status: result
     });
   });
 });
 
-app.post('/triggerSupplierBuild', function(req, res) {
+app.post('/triggerSupplierBuild', function (req, res) {
   var supplier_id = req.body['supplier_id']
   console.log("Triggering the supplier app for id:" + supplier_id);
-  if(supplier_id === undefined || supplier_id.trim().length <= 0) {
+  if (supplier_id === undefined || supplier_id.trim().length <= 0) {
     console.log('Error as no supplier id is found in the request for triggering the build')
     return res.status(400).json({
       error: 'Error as no supplier id is found in the request for triggering the build'
     })
   }
   var build_type = req.body['build_type']
-  if(build_type === undefined || build_type.trim().length <= 0) {
+  if (build_type === undefined || build_type.trim().length <= 0) {
     console.log('build_type is NOT found in the request for triggering the build. Default to Debug')
-	build_type = "Debug"
+    build_type = "Debug"
   }
 
-  getSupplierDetails(supplier_id, function(err, supplier_details) {
-    if(err) {
-        console.log('Error while fetching the supplier details. Error:' + err);
-        return res.status(400).json({
-            error: JSON.stringify(err)
-        })
+  getSupplierDetails(supplier_id, function (err, supplier_details) {
+    if (err) {
+      console.log('Error while fetching the supplier details. Error:' + err);
+      return res.status(400).json({
+        error: JSON.stringify(err)
+      })
     }
     var build_details = supplier_details['build_details']
-    if(build_details !== undefined) {
-        var status = build_details['status']
-        if(status === "INPROGRESS") {
-            console.log("The build is in-progress...")
-            return res.status(200).json( {
-                status : "INPROGRESS"
-            });
-        } else if(status === "COMPLETED")  {
-            console.log("The build is completed...")
-            return res.status(200).json( {
-                apk_file : build_details['apk_file'],
-                status : "COMPLETED"
-            });
-        }
+    if (build_details !== undefined) {
+      var status = build_details['status']
+      if (status === "INPROGRESS") {
+        console.log("The build is in-progress...")
+        return res.status(200).json({
+          status: "INPROGRESS"
+        });
+      } else if (status === "COMPLETED") {
+        console.log("The build is completed...")
+        return res.status(200).json({
+          apk_file: build_details['apk_file'],
+          status: "COMPLETED"
+        });
+      }
     }
-    isVMUpAdRunning(build_env, function(err, result) {
-      if(err) {
+    isVMUpAdRunning(build_env, function (err, result) {
+      if (err) {
         console.log('Failed in checking the build environment. Error:' + err)
         return res.status(400).json({
           error: 'Build Environment is down. Start it and wait for some time to be up/running'
         });
       }
       console.log('Current VM running status:' + result);
-      if(! result) {
+      if (!result) {
         console.log("Results about the VM instance is down / not found.")
         return res.status(400).json({
           error: 'Build Environment is down. Start it and wait for some time to be up/running'
         });
       }
 
-      waitForVMInstance(build_env, function(err, external_ip) {
-        if(err) {
+      waitForVMInstance(build_env, function (err, external_ip) {
+        if (err) {
           console.log('Failed in getting the VM instance Details. Error:' + err)
           return res.status(400).json({
             error: 'Error as trigger the supplier build. Error:' + err
           });
-        
+
         }
-        
+
         console.log("External IP found as:" + external_ip);
         var build_trigger_uri = BUILD_TRIGGER_URI.replace("<EXTERNAL_IP>", external_ip);
-        console.log("triiger url is:" + build_trigger_uri );
+        console.log("triiger url is:" + build_trigger_uri);
         var payload = {
-          "supplier_id" : supplier_id,
-          "build_type" : build_type
+          "supplier_id": supplier_id,
+          "build_type": build_type
         }
         console.log("Ready to tigger the build now");
-        triggerSupplierBuildRequest(build_trigger_uri, payload, function(err, status) {
-          if(err) {
+        triggerSupplierBuildRequest(build_trigger_uri, payload, function (err, status) {
+          if (err) {
             console.log("Failed while waiting for the build to get it completed. Error:" + err);
             return res.status(400).json({
               error: 'Error as trigger the supplier build. Error:' + err
             });
-      
+
           }
-          res.status(200).json( {
-            status : 'SUCCESS'
+          res.status(200).json({
+            status: 'SUCCESS'
           });
         });
       });
@@ -801,46 +800,70 @@ app.post('/triggerSupplierBuild', function(req, res) {
   });
 });
 
-app.get('/checkSupplierExists', function(req, res) {
-  
+app.get('/checkSupplierExists', function (req, res) {
+
   var phonenumber = req.query.phonenumber;
   phonenumber = phonenumber.trim();
-  var decodedPhoneNumber = Buffer.from(phonenumber, 'base64').toString(); 
+  var decodedPhoneNumber = Buffer.from(phonenumber, 'base64').toString();
 
   var suppliers = admin.database().ref('suppliers');
   var supplier_id = undefined;
   var found = false;
   console.log("Checking the decoded phone number:" + decodedPhoneNumber);
-  suppliers.once('value', function(snapshot) {
-    snapshot.forEach(function(supplier) {
+  suppliers.once('value', function (snapshot) {
+    snapshot.forEach(function (supplier) {
       var id = supplier.key;
       var details = supplier.val();
       //console.log('current supplier details:' + details['phoneNumber'] + " comparing with:" + decodedPhoneNumber);
       // &&
-      if(details['status'] && details['phoneNumber'] !== undefined && details['phoneNumber'] === decodedPhoneNumber) {
+      if (details['status'] && details['phoneNumber'] !== undefined && details['phoneNumber'] === decodedPhoneNumber) {
         supplier_id = id;
         found = true;
       }
     });
-    if(found) {
+    if (found) {
       console.log("Supplier is found for the given phone number and ID:" + supplier_id);
-      return res.status(200).json( {
-        status : 'Supplier exists with the given number',
-        id : supplier_id
+      return res.status(200).json({
+        status: 'Supplier exists with the given number',
+        id: supplier_id
       })
     } else {
       console.log("Supplier is NOT found for the given phone number " + decodedPhoneNumber);
 
-      return res.status(400).json( {
-        error : 'Supplier doesnt with the given number',
+      return res.status(400).json({
+        error: 'Supplier doesnt with the given number',
       })
     }
-  }).catch(function(err) {
+  }).catch(function (err) {
     console.log('Failed to get the suppliers details. Error:' + err);
-    return res.status(400).json( {
-      error : "Error while checking the supplier availability"
+    return res.status(400).json({
+      error: "Error while checking the supplier availability"
     })
   });
+});
+
+//Create a new user
+
+app.post("/createUser", (req, res) => {
+  var name = req.body['name'];
+  var phoneNumber = req.body['phoneNumber'];
+
+  admin
+    .auth()
+    .createUser({
+      phoneNumber: phoneNumber,
+      displayName: name,
+      photoURL: '',
+    })
+    .then((userRecord) => {
+      // See the UserRecord reference doc for the contents of userRecord.
+      console.log('Successfully created new user:', userRecord);
+      return res.status(200).json(userRecord)
+    })
+    .catch((error) => {
+      console.log('Error creating new user:', error);
+      return res.status(400).json(error)
+    });
 });
 
 // exports.uploadAndProcessSupplierInventories = functions.https.onRequest(uploadAndProcessSupplierInventories);
@@ -856,53 +879,53 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
   var orderId = data['key'];
 
   if (status === "Accepted") {
-      const payload = {
-          notification: {
-              title: "Order Accepted" + " (Order ID: " + orderId + ")",
-              body: "Order is expected to deliver on " + deliveryTime,
-          }
-      };
-
-      return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
-          var token = tokenSnap.val();
-          return admin.messaging().sendToDevice(token, payload);
-      });
-
-  } else if (status === "Rejected") {
-      const payload = {
-          notification: {
-              title: "Order Rejected" + " (Order ID: " + orderId + ")",
-              body: "Order rejected on " + deliveryTime,
-          }
-      };
-
-      return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
-          var token = tokenSnap.val();
-          return admin.messaging().sendToDevice(token, payload);
-      });
-  } else if (status === "Delivered") {
-      const payload = {
-          notification: {
-              title: "Order Delivered" + " (Order ID: " + orderId + ")",
-              body: "Order delivered on " + deliveryTime,
-          }
-      };
-
-      return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
-          var token = tokenSnap.val();
-          return admin.messaging().sendToDevice(token, payload);
-      });
-  } else if (status === "Out for Delivery") {
     const payload = {
-        notification: {
-            title: "Order Out for Delivery" + " (Order ID: " + orderId + ")",
-            body: "Order out for delivery on " + deliveryTime,
-        }
+      notification: {
+        title: "Order Accepted" + " (Order ID: " + orderId + ")",
+        body: "Order is expected to deliver on " + deliveryTime,
+      }
     };
 
     return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
-        var token = tokenSnap.val();
-        return admin.messaging().sendToDevice(token, payload);
+      var token = tokenSnap.val();
+      return admin.messaging().sendToDevice(token, payload);
+    });
+
+  } else if (status === "Rejected") {
+    const payload = {
+      notification: {
+        title: "Order Rejected" + " (Order ID: " + orderId + ")",
+        body: "Order rejected on " + deliveryTime,
+      }
+    };
+
+    return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
+      var token = tokenSnap.val();
+      return admin.messaging().sendToDevice(token, payload);
+    });
+  } else if (status === "Delivered") {
+    const payload = {
+      notification: {
+        title: "Order Delivered" + " (Order ID: " + orderId + ")",
+        body: "Order delivered on " + deliveryTime,
+      }
+    };
+
+    return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
+      var token = tokenSnap.val();
+      return admin.messaging().sendToDevice(token, payload);
+    });
+  } else if (status === "Out for Delivery") {
+    const payload = {
+      notification: {
+        title: "Order Out for Delivery" + " (Order ID: " + orderId + ")",
+        body: "Order out for delivery on " + deliveryTime,
+      }
+    };
+
+    return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
+      var token = tokenSnap.val();
+      return admin.messaging().sendToDevice(token, payload);
     });
   }
 });

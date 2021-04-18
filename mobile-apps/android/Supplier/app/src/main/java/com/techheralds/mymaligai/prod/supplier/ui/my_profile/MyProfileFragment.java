@@ -65,7 +65,7 @@ public class MyProfileFragment extends Fragment {
     ArrayList<String> allTags;
     CircleImageView dp;
     TextView name, phoneNumber, headerText;
-    Button editBtn, addTagsBtn;
+    Button editBtn, addTagsBtn, addUserBtn;
     TextView smsTemplteText, upiIdText;
     String smsTemplte, userUpiId = "";
 
@@ -87,6 +87,7 @@ public class MyProfileFragment extends Fragment {
         smsTemplteText = root.findViewById(R.id.profileSmsTemplate);
         upiIdText = root.findViewById(R.id.upiId);
         headerText = root.findViewById(R.id.profileTagsheader);
+        addUserBtn = root.findViewById(R.id.addUser);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("local", Context.MODE_PRIVATE);
         smsTemplte = sharedPreferences.getString("smsTemplate", "");
@@ -211,6 +212,37 @@ public class MyProfileFragment extends Fragment {
             }
         });
 
+        addUserBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+
+                bottomSheetDialog.setContentView(R.layout.add_user_sheet);
+
+                bottomSheetDialog.show();
+
+                final EditText phNoIp = bottomSheetDialog.findViewById(R.id.phoneNumberIp);
+                Button btn = bottomSheetDialog.findViewById(R.id.btn);
+
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String phNo = phNoIp.getText().toString();
+
+                        if (!phNo.trim().equalsIgnoreCase("")) {
+                            if (phNo.trim().length() == 10) {
+                                ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Adding User...");
+                            } else {
+                                Toast.makeText(getContext(), "Enter 10 Digit Phone Number", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Enter Phone Number", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+            }
+        });
 
         firebaseDatabase.getReference().child("suppliers/" + user.getUid() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

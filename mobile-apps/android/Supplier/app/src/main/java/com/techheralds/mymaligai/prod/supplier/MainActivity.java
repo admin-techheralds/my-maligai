@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
         final FloatingActionButton addItemsFab = findViewById(R.id.fab_add_items);
         final FloatingActionButton inviteFab = findViewById(R.id.fab_invite);
+        final FloatingActionButton salesFab = findViewById(R.id.fab_new_sales);
 
         inviteFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,12 +152,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        salesFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,CreateSaleActivity.class);
+                startActivity(intent);
+            }
+        });
+
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         final NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_demands_list, R.id.nav_demands_report, R.id.nav_manage_consumers,
+                R.id.nav_demands_list, R.id.nav_demands_report, R.id.nav_sales, R.id.nav_manage_consumers,
                 R.id.nav_my_profile)
                 .setDrawerLayout(drawer)
                 .build();
@@ -182,31 +192,41 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("RestrictedApi")
             @Override
             public void run() {
-                    if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("orders list")) {
-                        inviteFab.setVisibility(View.GONE);
-                        addItemsFab.setVisibility(View.VISIBLE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands report")) {
-                        inviteFab.setVisibility(View.GONE);
-                        addItemsFab.setVisibility(View.GONE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("manage customers")) {
-                        inviteFab.setVisibility(View.VISIBLE);
-                        addItemsFab.setVisibility(View.GONE);
-                    } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my profile")) {
-                        inviteFab.setVisibility(View.GONE);
-                        addItemsFab.setVisibility(View.GONE);
-                    }
+                if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("orders list")) {
+                    inviteFab.setVisibility(View.GONE);
+                    addItemsFab.setVisibility(View.VISIBLE);
+                    salesFab.setVisibility(View.GONE);
+                }
+                else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("sales")) {
+                    inviteFab.setVisibility(View.GONE);
+                    addItemsFab.setVisibility(View.GONE);
+                    salesFab.setVisibility(View.VISIBLE);
+                }
+                else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands report")) {
+                    inviteFab.setVisibility(View.GONE);
+                    addItemsFab.setVisibility(View.GONE);
+                    salesFab.setVisibility(View.GONE);
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("manage customers")) {
+                    inviteFab.setVisibility(View.VISIBLE);
+                    addItemsFab.setVisibility(View.GONE);
+                    salesFab.setVisibility(View.GONE);
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my profile")) {
+                    inviteFab.setVisibility(View.GONE);
+                    addItemsFab.setVisibility(View.GONE);
+                    salesFab.setVisibility(View.GONE);
+                }
 
-                    //set json data
-                    JSONObject jsonObject = new JSONObject();
-                    try {
-                        jsonObject.put("title", user.getDisplayName());
-                        jsonObject.put("logo", user.getPhotoUrl());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                  //  createAndSaveFile("appDetails", jsonObject.toString());
+                //set json data
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("title", user.getDisplayName());
+                    jsonObject.put("logo", user.getPhotoUrl());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                //  createAndSaveFile("appDetails", jsonObject.toString());
 
-                    handler.postDelayed(this, minutes);
+                handler.postDelayed(this, minutes);
 
             }
         }, minutes);
@@ -217,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.getValue() != null) {
-                        Supplier data= dataSnapshot.getValue(Supplier.class);
+                        Supplier data = dataSnapshot.getValue(Supplier.class);
                         TextView userName = (TextView) header.findViewById(R.id.nav_header_userName);
                         userName.setText(data.getName());
                         TextView userPhone = (TextView) header.findViewById(R.id.nav_header_userPhone);
@@ -243,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             String version = pInfo.versionName;
-            versionName.setText("Version: "+version);
+            versionName.setText("Version: " + version);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }

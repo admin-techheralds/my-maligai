@@ -38,4 +38,14 @@
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/add_items"
         />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_new_sales"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/add_item"
+        android:visibility="gone"
+        />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
