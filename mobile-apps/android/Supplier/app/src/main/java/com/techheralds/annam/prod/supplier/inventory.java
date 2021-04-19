@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 public class inventory {
     String name;

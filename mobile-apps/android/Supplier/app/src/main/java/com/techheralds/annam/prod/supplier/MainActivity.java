@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -267,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+
     }
 
     public void createAndSaveFile(String params, String mJsonResponse) {
@@ -298,6 +299,10 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 firebaseAuth.signOut();
+                                SharedPreferences preferences =getSharedPreferences("local",Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.clear();
+                                editor.apply();
                                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                                 startActivity(intent);
                                 finish();

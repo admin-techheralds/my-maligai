@@ -37,7 +37,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
-import com.techheralds.mymaligai.prod.supplier.R;
+import com.techheralds.annam.prod.supplier.R;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -74,7 +74,7 @@ public class ManageConsumersFragment extends Fragment {
         listView = root.findViewById(R.id.listView);
 
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Please wait...");
-        firebaseDatabase.getReference().child("sInvites/" + user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference().child("sInvites/" + getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 invites.clear();
@@ -100,6 +100,17 @@ public class ManageConsumersFragment extends Fragment {
             }
         });
         return root;
+    }
+
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
     }
 
     private void sendSMS(final String phoneNumber, final String date) {
@@ -128,8 +139,8 @@ public class ManageConsumersFragment extends Fragment {
                         Map<String, Object> data = new HashMap<>();
                         data.put("date", date);
                         data.put("status", "Pending");
-                        firebaseDatabase.getReference().child("sInvites/" + user.getUid() + "/" + phoneNumber).updateChildren(data);
-                        firebaseDatabase.getReference().child("cInvites/" + phoneNumber + "/" + user.getUid()+"/invited_date").setValue(date);
+                        firebaseDatabase.getReference().child("sInvites/" + getSupplierId() + "/" + phoneNumber).updateChildren(data);
+                        firebaseDatabase.getReference().child("cInvites/" + phoneNumber + "/" + getSupplierId()+"/invited_date").setValue(date);
                         //smsSentCount++;
                         Toast.makeText(getContext(), "SMS sent", Toast.LENGTH_SHORT).show();
                         break;

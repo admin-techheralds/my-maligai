@@ -93,13 +93,26 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/addUser"
-        style="@style/Widget.AppCompat.Button.Colored"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add User"
-        />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/addUser"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add User" />
+
+        <Button
+            android:id="@+id/listUser"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="List User" />
+
+    </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"

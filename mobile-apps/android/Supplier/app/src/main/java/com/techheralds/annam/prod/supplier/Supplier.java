@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 public class Supplier {
     String name;
@@ -12,11 +12,12 @@ public class Supplier {
     String smsTemplate;
     long supplier_id;
     String upiId;
+    String mainSupplier;
 
     public Supplier() {
     }
 
-    public Supplier(String name, String uid, String phoneNumber, String address, String location, Boolean status, Long dateCreated, String photo, String smsTemplate, long supplier_id, String upiId) {
+    public Supplier(String name, String uid, String phoneNumber, String address, String location, Boolean status, Long dateCreated, String photo, String smsTemplate, long supplier_id, String upiId, String mainSupplier) {
         this.name = name;
         this.uid = uid;
         this.phoneNumber = phoneNumber;
@@ -28,6 +29,7 @@ public class Supplier {
         this.smsTemplate = smsTemplate;
         this.supplier_id = supplier_id;
         this.upiId = upiId;
+        this.mainSupplier = mainSupplier;
     }
 
     public String getName() {
@@ -116,5 +118,13 @@ public class Supplier {
 
     public void setUpiId(String upiId) {
         this.upiId = upiId;
+    }
+
+    public String getMainSupplier() {
+        return mainSupplier;
+    }
+
+    public void setMainSupplier(String mainSupplier) {
+        this.mainSupplier = mainSupplier;
     }
 }

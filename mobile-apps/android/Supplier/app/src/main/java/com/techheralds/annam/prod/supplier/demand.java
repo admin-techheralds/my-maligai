@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import java.util.ArrayList;
 import java.util.Map;

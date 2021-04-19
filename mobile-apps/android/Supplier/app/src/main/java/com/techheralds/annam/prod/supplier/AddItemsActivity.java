@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -102,7 +102,7 @@ public class AddItemsActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = ProgressDialog.show(AddItemsActivity.this, null, "Please Wait...");
         tags.clear();
         //Load preferred tags
-        firebaseDatabase.getReference().child("suppliers/" + firebaseUser.getUid() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() > 0) {
@@ -144,11 +144,21 @@ public class AddItemsActivity extends AppCompatActivity {
         });
     }
 
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = AddItemsActivity.this.getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
+    }
 
     public void loadItemsWithTag(String id, String category) {
         final ProgressDialog progressDialog = ProgressDialog.show(AddItemsActivity.this, null, "Loading items with the category '" + capitalize(category) + "'.Please wait...");
 
-        firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + id).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + id).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 inventoryItems.clear();
@@ -303,14 +313,14 @@ public class AddItemsActivity extends AppCompatActivity {
                                         final Float iPrice = Float.valueOf(itemPrice.getText().toString().trim());
 
                                         final ProgressDialog progressDialog = ProgressDialog.show(AddItemsActivity.this, null, "Uploading Image...");
-                                        firebaseStorage.getReference().child("images/" + firebaseUser.getUid() + "/" + currId + "/" + iName).putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                        firebaseStorage.getReference().child("images/" + getSupplierId() + "/" + currId + "/" + iName).putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                             @Override
                                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                                firebaseStorage.getReference().child("images/" + firebaseUser.getUid() + "/" + currId + "/" + iName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                firebaseStorage.getReference().child("images/" + getSupplierId() + "/" + currId + "/" + iName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                     @Override
                                                     public void onSuccess(Uri uri) {
-                                                        final inventory data = new inventory(iName, iQuantityType, uri.toString(), iPrice, active, finalIA, finalIA1, finalIA2, bulk_import_id, created_at, created_mode, in_stock, sku,iName.toLowerCase());
-                                                        firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + sku).setValue(data).addOnFailureListener(new OnFailureListener() {
+                                                        final inventory data = new inventory(iName, iQuantityType, uri.toString(), iPrice, active, finalIA, finalIA1, finalIA2, bulk_import_id, created_at, created_mode, in_stock, sku, iName.toLowerCase());
+                                                        firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + sku).setValue(data).addOnFailureListener(new OnFailureListener() {
                                                             @Override
                                                             public void onFailure(@NonNull Exception e) {
                                                                 Toast.makeText(AddItemsActivity.this, "Can't add.Please try again", Toast.LENGTH_SHORT).show();
@@ -559,14 +569,14 @@ public class AddItemsActivity extends AppCompatActivity {
                                                                     Toast.makeText(AddItemsActivity.this, "Item already present", Toast.LENGTH_SHORT).show();
                                                                     return;
                                                                 }
-                                                                firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + inventories.get(position).getSku()).removeValue();
+                                                                firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + inventories.get(position).getSku()).removeValue();
                                                             }
 
                                                             final ProgressDialog progressDialog = ProgressDialog.show(AddItemsActivity.this, null, "Uploading Image...");
-                                                            firebaseStorage.getReference().child("images/" + firebaseUser.getUid() + "/" + currId + "/" + iName).putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                            firebaseStorage.getReference().child("images/" + getSupplierId() + "/" + currId + "/" + iName).putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                                                 @Override
                                                                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                                                    firebaseStorage.getReference().child("images/" + firebaseUser.getUid() + "/" + currId + "/" + iName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                                    firebaseStorage.getReference().child("images/" +getSupplierId()+ "/" + currId + "/" + iName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                                         @Override
                                                                         public void onSuccess(final Uri uri) {
 
@@ -574,7 +584,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                                                             data.put("quantity_type", iQuantityType);
                                                                             data.put("price", iPrice);
                                                                             data.put("img", uri.toString());
-                                                                            firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + inventoryItems.get(position).getSku()).updateChildren(data).addOnFailureListener(new OnFailureListener() {
+                                                                            firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + inventoryItems.get(position).getSku()).updateChildren(data).addOnFailureListener(new OnFailureListener() {
                                                                                 @Override
                                                                                 public void onFailure(@NonNull Exception e) {
                                                                                     Toast.makeText(AddItemsActivity.this, "Can't add.Please try again", Toast.LENGTH_SHORT).show();
@@ -615,14 +625,14 @@ public class AddItemsActivity extends AppCompatActivity {
                                                                 Toast.makeText(AddItemsActivity.this, "Item already present", Toast.LENGTH_SHORT).show();
                                                                 return;
                                                             }
-                                                            firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + inventories.get(position).getName().toLowerCase()).removeValue();
+                                                            firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + inventories.get(position).getName().toLowerCase()).removeValue();
                                                         }
 
                                                         Map<String, Object> data = new HashMap<>();
                                                         data.put("quantity_type", iQuantityType);
                                                         data.put("price", iPrice);
 
-                                                        firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + inventoryItems.get(position).getSku()).updateChildren(data).addOnFailureListener(new OnFailureListener() {
+                                                        firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + inventoryItems.get(position).getSku()).updateChildren(data).addOnFailureListener(new OnFailureListener() {
                                                             @Override
                                                             public void onFailure(@NonNull Exception e) {
                                                                 Toast.makeText(AddItemsActivity.this, "Can't add.Please try again", Toast.LENGTH_SHORT).show();
@@ -707,7 +717,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                         setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + currId + "/" + inventories.get(position).getSku()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + currId + "/" + inventories.get(position).getSku()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void aVoid) {
                                                         Toast.makeText(AddItemsActivity.this, "Item deleted", Toast.LENGTH_SHORT).show();
