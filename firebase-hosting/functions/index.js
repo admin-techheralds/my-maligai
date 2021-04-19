@@ -7,12 +7,12 @@ const path = require('path');
 var base64 = require('base-64');
 var request = require('request');
 const os = require('os');
-const secureRandom = require('secure-random')
+//const secureRandom = require('secure-random')
 
 
 // The Firebase Admin SDK to access Cloud Firestore.
 const admin = require('firebase-admin');
-var env = "my-maligai";
+var env = "annamfarmveggies";
 if (process.env.GCLOUD_PROJECT !== undefined) {
   env = process.env.GCLOUD_PROJECT;
 }
@@ -26,18 +26,15 @@ const database = "https://" + env + ".firebaseio.com/";
 const bucket_name = env + ".appspot.com";
 
 // process.env.GOOGLE_APPLICATION_CREDENTIALS=JSON.parse(base64.decode(fs.readFileSync(credFile)))
-fs.writeFileSync(os.tmpdir() + path.sep + env + "-service-account-decoded.json", base64.decode(fs.readFileSync(credFile)))
+//Commented because this build is only for annamfarmveggies
+//fs.writeFileSync(os.tmpdir() + path.sep + env + "-service-account-decoded.json", base64.decode(fs.readFileSync(credFile)))
 
 admin.initializeApp({
-  credential: admin.credential.cert(JSON.parse(base64.decode(fs.readFileSync(credFile)))),
+  //credential: admin.credential.cert(JSON.parse(base64.decode(fs.readFileSync(credFile)))),
   databaseURL: database,
   storageBucket: bucket_name
 });
 const auth = admin.auth();
-
-const build_env = require('./build_env.json');
-credFile['credFile'] = env + "-service-account-decoded.json"
-process.env.GOOGLE_APPLICATION_CREDENTIALS = os.tmpdir() + path.sep + env + "-service-account-decoded.json";
 
 const express = require('express');
 const { networkInterfaces } = require('os');
@@ -636,6 +633,9 @@ app.post('/uploadAndProcessSupplierInventories', function (req, res) {
   });
 });
 
+
+//Commenting the un-used functions as these were not required for annamfarmveggies
+/*
 getVMExternalIP = function (results) {
   const networkInterfaces = results.metadata.networkInterfaces;
   console.log("Nework interfaces:" + JSON.stringify(networkInterfaces));
@@ -799,6 +799,7 @@ app.post('/triggerSupplierBuild', function (req, res) {
     });
   });
 });
+*/
 
 app.get('/checkSupplierExists', function (req, res) {
 
@@ -848,22 +849,9 @@ app.post("/createUser", (req, res) => {
   var name = req.body['name'];
   var phoneNumber = req.body['phoneNumber'];
 
-  admin
-    .auth()
-    .createUser({
-      phoneNumber: phoneNumber,
-      displayName: name,
-      photoURL: '',
-    })
-    .then((userRecord) => {
-      // See the UserRecord reference doc for the contents of userRecord.
-      console.log('Successfully created new user:', userRecord);
-      return res.status(200).json(userRecord)
-    })
-    .catch((error) => {
-      console.log('Error creating new user:', error);
-      return res.status(400).json(error)
-    });
+  //we need to change the implementation for creating the user..
+  var main_supplier_id = req.body['supplier_id']
+  
 });
 
 // exports.uploadAndProcessSupplierInventories = functions.https.onRequest(uploadAndProcessSupplierInventories);
