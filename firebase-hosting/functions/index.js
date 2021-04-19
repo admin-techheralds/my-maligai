@@ -22,7 +22,7 @@ const { startVMInstance, waitForVMInstance, stopVMInstance, waitForBuildToComple
 
 const development = (env === "supplier-customer")
 const credFile = env + "-service-account.json"
-const database = "https://" + env + ".firebaseio.com/";
+const database = "https://" + env + "-default-rtdb.firebaseio.com/";
 const bucket_name = env + ".appspot.com";
 
 // process.env.GOOGLE_APPLICATION_CREDENTIALS=JSON.parse(base64.decode(fs.readFileSync(credFile)))
