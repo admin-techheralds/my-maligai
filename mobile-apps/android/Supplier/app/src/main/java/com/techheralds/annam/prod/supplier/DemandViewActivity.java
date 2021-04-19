@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;

@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;

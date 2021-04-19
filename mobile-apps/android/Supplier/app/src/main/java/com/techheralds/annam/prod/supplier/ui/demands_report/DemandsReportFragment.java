@@ -3,6 +3,7 @@ package com.techheralds.mymaligai.prod.supplier.ui.demands_report;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,8 +19,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.techheralds.mymaligai.prod.supplier.R;
-import com.techheralds.mymaligai.prod.supplier.demand;
+import com.techheralds.annam.prod.supplier.R;
+import com.techheralds.annam.prod.supplier.demand;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -52,6 +53,7 @@ public class DemandsReportFragment extends Fragment {
     ArrayList<Map<String, Object>> reportArr;
     reportAdapterList adapterList;
     TableLayout tableLayout;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_demands_report, container, false);
@@ -81,6 +83,16 @@ public class DemandsReportFragment extends Fragment {
         return root;
     }
 
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
+    }
 
     private void show_Datepicker() {
         Calendar c = Calendar.getInstance();
@@ -102,7 +114,7 @@ public class DemandsReportFragment extends Fragment {
                         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Please wait...");
                         isToasted = false;
 
-                        firebaseDatabase.getReference().child("demands/").orderByChild("supplier").equalTo(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        firebaseDatabase.getReference().child("demands/").orderByChild("supplier").equalTo(getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 progressDialog.dismiss();

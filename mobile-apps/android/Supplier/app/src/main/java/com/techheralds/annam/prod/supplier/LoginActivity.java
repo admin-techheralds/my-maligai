@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             String version = pInfo.versionName;
-            versionName.setText("Version: "+version);
+            versionName.setText("Version: " + version);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -140,9 +140,9 @@ public class LoginActivity extends AppCompatActivity {
     public void login() throws UnsupportedEncodingException {
         final String phoneNumerIp = phoneNumer.getText().toString();
         if (!phoneNumerIp.equals("")) {
-            String pNo = "+91" + phoneNumerIp;
+            String pNo = "+91" + phoneNumerIp.trim();
             String e = Base64.getEncoder().encodeToString(pNo.getBytes("utf-8"));
-            checkSupplier(e);
+            checkSupplier(e, pNo);
         } else {
             Toast.makeText(this, "Enter 10 digit phone number", Toast.LENGTH_SHORT).show();
         }
@@ -167,7 +167,7 @@ public class LoginActivity extends AppCompatActivity {
         if (!supplier_phone_number.equals("")) {
             phoneNumer.setText(supplier_phone_number.substring(3));
             String e = Base64.getEncoder().encodeToString(supplier_phone_number.getBytes("utf-8"));
-            checkSupplier(e);
+            checkSupplier(e, supplier_phone_number);
         }
     }
 
@@ -198,6 +198,9 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putString("supplier_name", data.getName());
                                 editor.putString("supplier_phone_number", data.getPhoneNumber());
                                 editor.putString("supplier_photo", data.getPhoto());
+                                if (data.getMainSupplier() != null) {
+                                    editor.putString("mainSupplier", data.getMainSupplier());
+                                }
                                 editor.apply();
 
                                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
@@ -220,6 +223,10 @@ public class LoginActivity extends AppCompatActivity {
                                         .setPositiveButton("Ok", null).show();
                             }
                         }
+                        else {
+                            Intent intent = new Intent(LoginActivity.this, SetupActivity.class);
+                            startActivity(intent);
+                        }
                     }
 
                     @Override
@@ -233,10 +240,10 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public void checkSupplier(String encodedString) {
+    public void checkSupplier(String encodedString, final String phoneNumber) {
         final ProgressDialog dialog = ProgressDialog.show(LoginActivity.this, "",
                 "Checking Supplier.Please wait...", true);
-        String url = "https://us-central1-my-maligai.cloudfunctions.net/app/checkSupplierExists?phonenumber=" + encodedString;
+        String url = "https://us-central1-annamfarmveggies.cloudfunctions.net/app/checkSupplierExists?phonenumber=" + encodedString;
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url(url)
@@ -268,15 +275,42 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    final String myResponse = response.body().string();
-                    LoginActivity.this.runOnUiThread(new Runnable() {
+                    firebaseDatabase.getReference().child("main/" + phoneNumber).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void run() {
-                            dialog.dismiss();
-                            Toast.makeText(LoginActivity.this, "No Supplier registered with this phone number", Toast.LENGTH_LONG).show();
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.getValue() != null) {
+
+                                SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("mainSupplier", dataSnapshot.getValue().toString());
+                                editor.apply();
+
+                                LoginActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dialog.dismiss();
+                                        final String phoneNumerIp = phoneNumer.getText().toString();
+                                        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                                                new AuthUI.IdpConfig.PhoneBuilder().setDefaultNumber("IN", phoneNumerIp).build());
+                                        startActivityForResult(
+                                                AuthUI.getInstance()
+                                                        .createSignInIntentBuilder()
+                                                        .setAvailableProviders(providers)
+                                                        .build(),
+                                                001);
+                                    }
+                                });
+                            } else {
+                                dialog.dismiss();
+                                Toast.makeText(LoginActivity.this, "No Supplier registered with this phone number", Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            Toast.makeText(LoginActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
-
                 }
             }
         });

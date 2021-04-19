@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -17,9 +18,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.techheralds.mymaligai.prod.supplier.DemandViewActivity;
-import com.techheralds.mymaligai.prod.supplier.R;
-import com.techheralds.mymaligai.prod.supplier.demand;
+import com.techheralds.annam.prod.supplier.AddItemsActivity;
+import com.techheralds.annam.prod.supplier.DemandViewActivity;
+import com.techheralds.annam.prod.supplier.R;
+import com.techheralds.annam.prod.supplier.demand;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -69,7 +71,7 @@ public class DemandsListFragment extends Fragment {
 
 
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Loading Demands.Please wait...");
-        firebaseDatabase.getReference().child("demands").orderByChild("supplier").equalTo(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference().child("demands").orderByChild("supplier").equalTo(getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -101,6 +103,17 @@ public class DemandsListFragment extends Fragment {
             }
         });
         return root;
+    }
+
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
     }
 
     public void checkArrSize() {

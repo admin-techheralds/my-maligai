@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -95,7 +96,7 @@ public class CreateSaleActivity extends AppCompatActivity {
                 final ProgressDialog progressDialog = ProgressDialog.show(CreateSaleActivity.this, null, "Please Wait...");
 
                 //Load preferred tags
-                firebaseDatabase.getReference().child("suppliers/" + firebaseUser.getUid() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
+                firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getChildrenCount() > 0) {
@@ -114,7 +115,7 @@ public class CreateSaleActivity extends AppCompatActivity {
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                         final ProgressDialog progressDialog = ProgressDialog.show(CreateSaleActivity.this, null, "Loading items with the category '" + capitalize(tags.get(position).get("category").toString()) + "'.Please wait...");
 
-                                        firebaseDatabase.getReference().child("inventory/" + firebaseUser.getUid() + "/" + tags.get(position).get("id")).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + tags.get(position).get("id")).addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                 items.clear();
@@ -166,6 +167,17 @@ public class CreateSaleActivity extends AppCompatActivity {
                 bottomSheetDialog.show();
             }
         });
+    }
+
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = CreateSaleActivity.this.getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
     }
 
     @Override

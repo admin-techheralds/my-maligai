@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -95,7 +95,7 @@ public class InviteActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        firebaseDatabase.getReference().child("sInvites/" + user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseDatabase.getReference().child("sInvites/" + getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() > 0) {
@@ -242,6 +242,18 @@ public class InviteActivity extends AppCompatActivity {
         }
     }
 
+    public String getSupplierId() {
+        SharedPreferences sharedPreferences = InviteActivity.this.getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (mainSupplier.equalsIgnoreCase("")) {
+            return firebaseAuth.getCurrentUser().getUid();
+        } else {
+            return mainSupplier;
+        }
+    }
+
+
     private void sendSMS(final String phoneNumber, final String fullNumber, final String date) {
 
         SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
@@ -265,8 +277,8 @@ public class InviteActivity extends AppCompatActivity {
         data.put("invited_date", date);
         data.put("accepted_date", "");
         data.put("status", "Pending");
-        firebaseDatabase.getReference().child("sInvites/" + user.getUid() + "/+91" + phoneNumber).setValue(data);
-        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" + user.getUid()+"/invited_date").setValue(date);
+        firebaseDatabase.getReference().child("sInvites/" + getSupplierId()+ "/+91" + phoneNumber).setValue(data);
+        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" +getSupplierId()+"/invited_date").setValue(date);
 
         //---when the SMS has been accept---
         registerReceiver(new BroadcastReceiver() {
