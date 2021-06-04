@@ -164,6 +164,9 @@ public class InviteActivity extends AppCompatActivity {
                                                             //   searchView.setQuery("", true);
                                                             // ((BaseAdapter) listView.getAdapter()).notifyDataSetChanged();
                                                             Toast.makeText(InviteActivity.this, "SMS Sent", Toast.LENGTH_SHORT).show();
+
+                                                            Intent intent = new Intent(InviteActivity.this, MainActivity.class);
+                                                            intent.putExtra("fragment", "manage_customer");
                                                             finish();
                                                         }
                                                     });
@@ -277,8 +280,8 @@ public class InviteActivity extends AppCompatActivity {
         data.put("invited_date", date);
         data.put("accepted_date", "");
         data.put("status", "Pending");
-        firebaseDatabase.getReference().child("sInvites/" + getSupplierId()+ "/+91" + phoneNumber).setValue(data);
-        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" +getSupplierId()+"/invited_date").setValue(date);
+        firebaseDatabase.getReference().child("sInvites/" + getSupplierId() + "/+91" + phoneNumber).setValue(data);
+        firebaseDatabase.getReference().child("cInvites/+91" + phoneNumber + "/" + getSupplierId() + "/invited_date").setValue(date);
 
         //---when the SMS has been accept---
         registerReceiver(new BroadcastReceiver() {

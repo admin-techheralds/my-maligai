@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.techheralds.mymaligai.prod.customer">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.techheralds.annam.prod.customer">
 
     <application
         android:allowBackup="true"
@@ -9,14 +10,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".OrderViewActivity"></activity>
+        <activity android:name=".SalesActivity"></activity>
+        <activity android:name=".OrderViewActivity" />
         <activity android:name=".PlaceOrderActivity" />
         <activity android:name=".SelectSupplierActivity" />
         <activity android:name=".SetupActivity" />
+
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name=".MainActivity" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,16 +39,14 @@
 
         <meta-data
             android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
-
-        <!-- Keep it false in production environment-->
+            android:resource="@array/preloaded_fonts" /> <!-- Keep it false in production environment -->
         <meta-data
             android:name="com.phonepe.android.sdk.Debuggable"
-            android:value="true"/>
-        <!-- Keep it false in production environment-->
+            android:value="true" /> <!-- Keep it false in production environment -->
         <meta-data
             android:name="com.phonepe.android.sdk.isUAT"
-            android:value="true"/>
+            android:value="true" />
+
     </application>
 
 </manifest>

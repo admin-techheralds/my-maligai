@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:text="You have no demands"
+        android:text="You have no orders"
         android:textStyle="bold"
         android:visibility="gone" />
 </LinearLayout>

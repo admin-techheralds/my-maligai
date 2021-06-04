@@ -214,7 +214,7 @@ public class AddItemsActivity extends AppCompatActivity {
 
                 Spinner quantityTypeSpinner;
                 Button qunatityTypeBtn, addBtn;
-                final int[] currQuantityType = new int[1];
+                final Long[] currQuantityType = new Long[1];
                 final EditText itemName, itemPrice, attr1, attr2, attr3;
                 Button addImageBtn;
                 TextView header;
@@ -264,7 +264,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                     if (findIndexOf(itemName.getText().toString()) == -1) {
 
                                         final String iName = itemName.getText().toString().trim();
-                                        final int iQuantityType = currQuantityType[0];
+                                        final Long iQuantityType = currQuantityType[0];
                                         final int active = 1;
                                         String tempName;
                                         if (iName.length() < 3) {
@@ -378,7 +378,7 @@ public class AddItemsActivity extends AppCompatActivity {
                 quantityTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        currQuantityType[0] = position;
+                        currQuantityType[0] = Long.valueOf(position);
                         if (position == 0) {
                             itemPrice.setHint("Item Price for 1kg");
                         }
@@ -461,7 +461,7 @@ public class AddItemsActivity extends AppCompatActivity {
 
                 title.setText(capitalize(inventories.get(position).getName()));
 
-                int quantityType = inventories.get(position).getQuantity_type();
+                Long quantityType = inventories.get(position).getQuantity_type();
                 String itemUnitType = "";
                 if (quantityType == 0) {
                     itemUnitType = "1kg";
@@ -594,7 +594,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                                                                 public void onSuccess(Void aVoid) {
                                                                                     progressDialog.dismiss();
                                                                                     inventories.get(position).setName(itemName.getText().toString().trim());
-                                                                                    inventories.get(position).setQuantity_type(currQuantityType[0]);
+                                                                                    inventories.get(position).setQuantity_type((long) currQuantityType[0]);
                                                                                     inventories.get(position).setImg(uri.toString());
                                                                                     inventories.get(position).setPrice(Float.valueOf(itemPrice.getText().toString()));
 
@@ -641,7 +641,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                                             @Override
                                                             public void onSuccess(Void aVoid) {
                                                                 inventories.get(position).setName(itemName.getText().toString().trim());
-                                                                inventories.get(position).setQuantity_type(currQuantityType[0]);
+                                                                inventories.get(position).setQuantity_type((long) currQuantityType[0]);
                                                                 inventories.get(position).setImg(inventoryItems.get(position).getImg());
                                                                 inventories.get(position).setPrice(Float.valueOf(itemPrice.getText().toString()));
 
@@ -677,7 +677,7 @@ public class AddItemsActivity extends AppCompatActivity {
                                         quantityTypeSpinner = bottomSheetDialog.findViewById(R.id.spinner);
                                         quantityTypeSpinner.setAdapter(adapter);
 
-                                        quantityTypeSpinner.setSelection(inventories.get(position).getQuantity_type());
+                                        quantityTypeSpinner.setSelection(Math.toIntExact(inventories.get(position).getQuantity_type()));
 
                                         quantityTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                             @Override

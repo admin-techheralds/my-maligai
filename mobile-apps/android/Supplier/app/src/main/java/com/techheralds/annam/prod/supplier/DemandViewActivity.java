@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -60,7 +61,7 @@ import java.util.regex.Pattern;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class DemandViewActivity extends AppCompatActivity {
-    String supplier, orderedItems, status, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
+    String supplier, orderedItems, status, saleId, deliveryTime, consumer, key, name, phoneNumber, userDp, createdOn, address, rejectionReason;
     String isPaid, payment_mode;
     double price;
     ArrayList<Map<String, Object>> demandList, timeline;
@@ -70,7 +71,7 @@ public class DemandViewActivity extends AppCompatActivity {
     TextView nameTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, timelineHint, rejectionHeader, rejectionText, paymentMode, paid, paidHint;
     CircleImageView dp;
     Spinner statusSpinner;
-    ArrayList<String> statusArr = new ArrayList<String>();
+    ArrayList<String> statusArr = new ArrayList<>();
     Boolean isLoaded = false;
     ListView listView;
     itemsAdapterList adapterList;
@@ -83,6 +84,7 @@ public class DemandViewActivity extends AppCompatActivity {
     WebView mWebView;
     Button viewOrdersBtn;
     timelineAdapterList timelineAdapterList;
+    viewBundleItemsAdapter viewBundleItemsAdapter;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -129,6 +131,7 @@ public class DemandViewActivity extends AppCompatActivity {
         phoneNumber = i.getExtras().getString("phoneNumber");
         userDp = i.getExtras().getString("dp");
         supplier = i.getExtras().getString("supplier");
+        saleId = i.getExtras().getString("saleId");
         orderedItems = i.getExtras().getString("items");
         status = i.getExtras().getString("status");
         deliveryTime = i.getExtras().getString("deliveryTime");
@@ -150,10 +153,15 @@ public class DemandViewActivity extends AppCompatActivity {
             rejectionText.setText(rejectionReason);
         }
 
+        deliveryTimeText = findViewById(R.id.deliveryTimeText);
         deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
         statusSpinner = findViewById(R.id.statusSpinner);
         timelineHint = findViewById(R.id.timelineHint);
+        if (deliveryTime != null) {
+            deliveryTextHeader.setVisibility(View.VISIBLE);
+            deliveryTimeText.setVisibility(View.VISIBLE);
 
+        }
         if (status.equalsIgnoreCase("placed")) {
             statusArr.add("Placed");
             statusArr.add("Accepted");
@@ -182,7 +190,6 @@ public class DemandViewActivity extends AppCompatActivity {
             //statusSpinner.setEnabled(false);
         }
 
-
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
@@ -194,7 +201,6 @@ public class DemandViewActivity extends AppCompatActivity {
 
         dp = findViewById(R.id.dp);
         nameTxt = findViewById(R.id.nameText);
-        deliveryTimeText = findViewById(R.id.deliveryTimeText);
         phoneNumberText = findViewById(R.id.phoneNumberText);
         createdOnText = findViewById(R.id.createdOnText);
         priceText = findViewById(R.id.priceText);
@@ -866,7 +872,7 @@ public class DemandViewActivity extends AppCompatActivity {
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
-        public View getView(int position, View view, ViewGroup parent) {
+        public View getView(final int position, View view, ViewGroup parent) {
             view = LayoutInflater.from(context).inflate(R.layout.demand_item_list, parent, false);
             TextView itemName = view.findViewById(R.id.itemName);
             TextView itemQuantity = view.findViewById(R.id.itemQuantity);
@@ -891,6 +897,124 @@ public class DemandViewActivity extends AppCompatActivity {
             String moneyString = formatter.format(price);
             itemQuantity.setText(items.get(position).get("quantity").toString() + " - MRP: " + moneyString);
             countText.setText(items.get(position).get("count").toString());
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (items.get(position).get("sku").toString().startsWith("bundle")) {
+                        String bundleIndex = items.get(position).get("sku").toString().split("_")[1];
+
+                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
+
+                        firebaseDatabase.getReference().child("sales/" + supplier + "/" + saleId + "/bundles/" + bundleIndex + "/items").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.getValue() != null) {
+                                    ArrayList<Map<String, Object>> data = (ArrayList<Map<String, Object>>) dataSnapshot.getValue();
+
+                                    BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(DemandViewActivity.this);
+                                    bottomSheetDialog.setContentView(R.layout.view_bundle_sheet);
+
+                                    TextView bundleName = bottomSheetDialog.findViewById(R.id.bundleName);
+                                    ListView listView = bottomSheetDialog.findViewById(R.id.listView);
+                                    bundleName.setText(items.get(position).get("name").toString());
+
+                                    viewBundleItemsAdapter = new viewBundleItemsAdapter(DemandViewActivity.this, data);
+                                    listView.setAdapter(viewBundleItemsAdapter);
+                                    progressDialog.dismiss();
+                                    bottomSheetDialog.show();
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            });
+
+            return view;
+        }
+    }
+
+    public class viewBundleItemsAdapter extends BaseAdapter {
+        Context context;
+        ArrayList<Map<String, Object>> items;
+
+        public viewBundleItemsAdapter(Context context, ArrayList<Map<String, Object>> items) {
+            this.context = context;
+            this.items = items;
+        }
+
+        @Override
+        public int getCount() {
+            return items.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        @Override
+        public View getView(final int position, View view, ViewGroup parent) {
+            view = LayoutInflater.from(context).inflate(R.layout.view_bundle_list, parent, false);
+            TextView name, actualQnt, minQun, price;
+            name = view.findViewById(R.id.nameTxt);
+            actualQnt = view.findViewById(R.id.aQuantityTxt);
+            minQun = view.findViewById(R.id.mQuantityTxt);
+            price = view.findViewById(R.id.priceTxt);
+            ImageView img = view.findViewById(R.id.itemImg);
+
+            if (items.size() > 0) {
+                name.setText(items.get(position).get("name").toString());
+
+
+                if (items.get(position).get("img") != null) {
+                    if (!items.get(position).get("img").toString().equalsIgnoreCase("")) {
+                        Picasso.with(DemandViewActivity.this).load(items.get(position).get("img").toString()).into(img);
+                    }
+                }
+
+                int qType = Math.toIntExact((Long) items.get(position).get("qType"));
+
+                if (qType == 0) {
+                    price.setText("Price for 1kg: " + items.get(position).get("price").toString());
+                    actualQnt.setText("Actual Quantity: " + items.get(position).get("actualQuantity").toString() + " Kg");
+                    minQun.setText("Minimum Quantity: " + items.get(position).get("minQuantity").toString() + " Kg");
+                }
+                if (qType == 1) {
+                    price.setText("Price for 100g: " + items.get(position).get("price").toString());
+                    actualQnt.setText("Actual Quantity: " + items.get(position).get("actualQuantity").toString() + " g");
+                    minQun.setText("Minimum Quantity: " + items.get(position).get("minQuantity").toString() + " g");
+                }
+                if (qType == 2) {
+                    price.setText("Price for 1L: " + items.get(position).get("price").toString());
+                    actualQnt.setText("Actual Quantity: " + items.get(position).get("actualQuantity").toString() + " L");
+                    minQun.setText("Minimum Quantity: " + items.get(position).get("minQuantity").toString() + " L");
+                }
+                if (qType == 3) {
+                    price.setText("Price for 100ml: " + items.get(position).get("price").toString());
+                    actualQnt.setText("Actual Quantity: " + items.get(position).get("actualQuantity").toString() + " ml");
+                    minQun.setText("Minimum Quantity: " + items.get(position).get("minQuantity").toString() + " ml");
+                }
+                if (qType == 4) {
+                    price.setText("Price for 1pc: " + items.get(position).get("price").toString());
+                    actualQnt.setText("Actual Quantity: " + items.get(position).get("actualQuantity").toString() + " pc");
+                    minQun.setText("Minimum Quantity: " + items.get(position).get("minQuantity").toString() + " pc");
+                }
+            }
+
             return view;
         }
     }

@@ -12,7 +12,7 @@
         android:background="#fff"
         android:orientation="vertical"
         android:padding="16dp"
-        tools:context="com.techheralds.mymaligai.prod.supplier.DemandViewActivity">
+        tools:context="com.techheralds.annam.prod.supplier.DemandViewActivity">
 
 
         <TextView
@@ -122,6 +122,7 @@
             android:id="@+id/deliveryTimeTextHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_marginTop="10dp"
             android:textStyle="bold" />
 
@@ -132,6 +133,7 @@
             android:layout_marginTop="5dp"
             android:textColor="#222"
             android:textSize="16dp"
+            android:visibility="gone"
             android:textStyle="bold" />
 
         <TextView

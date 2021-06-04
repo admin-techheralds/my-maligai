@@ -3,33 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_demands_list">
+    app:startDestination="@+id/nav_sales">
 
     <fragment
-        android:id="@+id/nav_demands_list"
-        android:name="com.techheralds.mymaligai.prod.supplier.ui.demands_list.DemandsListFragment"
-        android:label="Orders List"
-        tools:layout="@layout/fragment_demands_list" />
-    <fragment
         android:id="@+id/nav_sales"
-        android:name="com.techheralds.mymaligai.prod.supplier.SalesFragment"
+        android:name="com.techheralds.annam.prod.supplier.SalesFragment"
         android:label="Sales"
         tools:layout="@layout/fragment_sales" />
     <fragment
         android:id="@+id/nav_demands_report"
-        android:name="com.techheralds.mymaligai.prod.supplier.ui.demands_report.DemandsReportFragment"
+        android:name="com.techheralds.annam.prod.supplier.ui.demands_report.DemandsReportFragment"
         android:label="Demands Report"
         tools:layout="@layout/fragment_demands_report" />
 
     <fragment
         android:id="@+id/nav_manage_consumers"
-        android:name="com.techheralds.mymaligai.prod.supplier.ui.manage_consumers.ManageConsumersFragment"
+        android:name="com.techheralds.annam.prod.supplier.ui.manage_consumers.ManageConsumersFragment"
         android:label="Manage Customers"
         tools:layout="@layout/fragment_manage_consumers" />
 
     <fragment
         android:id="@+id/nav_my_profile"
-        android:name="com.techheralds.mymaligai.prod.supplier.ui.my_profile.MyProfileFragment"
+        android:name="com.techheralds.annam.prod.supplier.ui.my_profile.MyProfileFragment"
         android:label="My Profile"
         tools:layout="@layout/fragment_my_profile" />
 

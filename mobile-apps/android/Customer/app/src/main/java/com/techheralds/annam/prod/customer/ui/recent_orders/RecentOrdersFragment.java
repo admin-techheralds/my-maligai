@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.customer.ui.recent_orders;
+package com.techheralds.annam.prod.customer.ui.recent_orders;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -16,10 +16,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.techheralds.mymaligai.prod.customer.OrderViewActivity;
+import com.techheralds.annam.prod.customer.OrderViewActivity;
 
-import com.techheralds.mymaligai.prod.customer.R;
-import com.techheralds.mymaligai.prod.customer.demand;
+import com.techheralds.annam.prod.customer.R;
+import com.techheralds.annam.prod.customer.demand;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -136,22 +136,19 @@ public class RecentOrdersFragment extends Fragment {
             view = LayoutInflater.from(context).inflate(R.layout.demand_list, parent, false);
 
             if (demands.size() > 0) {
-                TextView userTypeText = view.findViewById(R.id.userTypeText);
                 TextView itemCount = view.findViewById(R.id.itemCount);
                 TextView demandStatus = view.findViewById(R.id.demandStatus);
                 TextView demandPlacedTime = view.findViewById(R.id.demandPlacedTime);
-                final TextView name = view.findViewById(R.id.userName);
-                final TextView phoneNumber = view.findViewById(R.id.userPhoneNumber);
+                final TextView name = view.findViewById(R.id.saleName);
                 final CircleImageView dp = view.findViewById(R.id.userDp);
                 final String[] userDp = {""};
 
-                userTypeText.setText("Supplier");
                 demandStatus.setText(capitalize(demands.get(position).getStatus()));
                 demandPlacedTime.setText(demands.get(position).getTimeCreated());
                 itemCount.setText(demands.get(position).getDemandList().size() > 1 ? demands.get(position).getDemandList().size() + " items" : demands.get(position).getDemandList().size() + " item");
 
                 if (userNames.get(position) == null) {
-                    firebaseDatabase.getReference().child("suppliers/" + demands.get(position).getSupplier() + "/name").addListenerForSingleValueEvent(new ValueEventListener() {
+                    firebaseDatabase.getReference().child("sales/" + demands.get(position).getSupplier() + "/" + demands.get(position).getSaleId() + "/name").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             userNames.set(position, dataSnapshot.getValue().toString());
@@ -167,50 +164,8 @@ public class RecentOrdersFragment extends Fragment {
                     name.setText(userNames.get(position));
                 }
 
-                if (userPhoneNumbers.get(position) == null) {
-                    firebaseDatabase.getReference().child("suppliers/" + demands.get(position).getSupplier() + "/phoneNumber").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            phoneNumber.setText(dataSnapshot.getValue().toString());
-                            userPhoneNumbers.set(position, dataSnapshot.getValue().toString());
-                        }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        }
-                    });
-                } else {
-                    phoneNumber.setText(userPhoneNumbers.get(position));
-                }
-
-                if (userDps.get(position) == null) {
-
-                    firebaseDatabase.getReference().child("suppliers/" + demands.get(position).getSupplier() + "/photo").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            userDp[0] = dataSnapshot.getValue().toString();
-                            if (dataSnapshot.getValue().toString().equals("")) {
-                                dp.setImageResource(R.drawable.nouser);
-                                userDps.set(position, "");
-                            } else {
-                                userDps.set(position, dataSnapshot.getValue().toString());
-                                Picasso.with(getContext()).load(dataSnapshot.getValue().toString()).into(dp);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                } else {
-                    if (userDps.get(position).equals("")) {
-                        dp.setImageResource(R.drawable.nouser);
-                    } else {
-                        Picasso.with(getContext()).load(userDps.get(position)).into(dp);
-                    }
-                }
                 final StringBuilder stringBuilder = new StringBuilder();
 
                 for (Map<String, Object> item : demands.get(position).getDemandList()) {
@@ -221,10 +176,9 @@ public class RecentOrdersFragment extends Fragment {
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if (!name.getText().toString().equals("") && !phoneNumber.getText().toString().equals("")) {
+                        if (!name.getText().toString().equals("")) {
                             Intent intent = new Intent(getActivity(), OrderViewActivity.class);
                             intent.putExtra("name", name.getText().toString());
-                            intent.putExtra("phoneNumber", phoneNumber.getText().toString());
                             intent.putExtra("demandList", demands.get(position).getDemandList());
                             intent.putExtra("timeline", demands.get(position).getTimeLine());
                             intent.putExtra("dp", userDp[0]);

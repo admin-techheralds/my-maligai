@@ -18,16 +18,9 @@
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Supplier Details"
+            android:text="Sale Name"
             android:textStyle="bold" />
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/dp"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="5dp"
-            android:background="@drawable/rounded_corners" />
 
         <TextView
             android:id="@+id/nameText"
@@ -37,12 +30,6 @@
             android:textSize="17dp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/phoneNumberText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15dp"
-            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
@@ -124,6 +111,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Delivery Expected On"
+            android:visibility="gone"
             android:textStyle="bold" />
 
         <TextView
@@ -132,6 +120,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textColor="#222"
+            android:visibility="gone"
             android:textSize="16dp"
             android:textStyle="bold" />
 

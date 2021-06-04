@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.customer;
+package com.techheralds.annam.prod.customer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -38,7 +38,6 @@ import com.shreyaspatil.EasyUpiPayment.EasyUpiPayment;
 import com.shreyaspatil.EasyUpiPayment.listener.PaymentStatusListener;
 import com.shreyaspatil.EasyUpiPayment.model.TransactionDetails;
 import com.squareup.picasso.Picasso;
-import com.techheralds.mymaligai.prod.customer.R;
 
 import org.w3c.dom.Text;
 
@@ -63,8 +62,8 @@ public class OrderViewActivity extends AppCompatActivity {
     FirebaseAuth firebaseAuth;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
-    TextView nameTxt, demandStatusTxt, deliveryTimeText, phoneNumberText, createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, rejectionHeader, rejectionText, paymentMode, paid;
-    CircleImageView dp;
+    TextView nameTxt, demandStatusTxt, deliveryTimeText,   createdOnText, priceText, orderIdText, deliveryTextHeader, addressText, totalItemstext, rejectionHeader, rejectionText, paymentMode, paid;
+
     ArrayList<String> statusArr = new ArrayList<>();
     itemsAdapterList adapterList;
     timelineAdapterList timelineAdapterList;
@@ -126,31 +125,16 @@ public class OrderViewActivity extends AppCompatActivity {
         isPaid = i.getExtras().getString("paid");
         payment_mode = i.getExtras().getString("payment_mode");
 
-        deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
 
-        if (status.equalsIgnoreCase("placed")) {
-            deliveryTextHeader.setText("Delivery Expected On");
-        } else if (status.equalsIgnoreCase("accepted")) {
-            deliveryTextHeader.setText("Delivery Expected On");
-        } else if (status.equalsIgnoreCase("rejected")) {
-            deliveryTextHeader.setText("Delivery Rejected On");
-        } else if (status.equalsIgnoreCase("delivered")) {
-            deliveryTextHeader.setText("Delivered On");
-        } else if (status.equalsIgnoreCase("cancelled")) {
-            deliveryTextHeader.setText("Cancelled On");
-        } else if (status.equalsIgnoreCase("out for delivery")) {
-            deliveryTextHeader.setText("Out for Delivery On");
-        }
+
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
-        dp = findViewById(R.id.dp);
         nameTxt = findViewById(R.id.nameText);
         demandStatusTxt = findViewById(R.id.statusText);
         deliveryTimeText = findViewById(R.id.deliveryTimeText);
-        phoneNumberText = findViewById(R.id.phoneNumberText);
         createdOnText = findViewById(R.id.createdOnText);
         priceText = findViewById(R.id.priceText);
         orderIdText = findViewById(R.id.orderIdText);
@@ -163,12 +147,29 @@ public class OrderViewActivity extends AppCompatActivity {
 
         orderIdText.setText(key);
         nameTxt.setText(name);
-        phoneNumberText.setText(phoneNumber);
         createdOnText.setText(createdOn);
         demandStatusTxt.setText(capitalize(status));
         deliveryTimeText.setText(deliveryTime);
         addressText.setText(address);
         totalItemstext.setText(demandList.size() == 1 ? demandList.size() + " Item" : demandList.size() + " Items");
+        deliveryTextHeader = findViewById(R.id.deliveryTimeTextHeader);
+        if (deliveryTime != null) {
+            deliveryTextHeader.setVisibility(View.VISIBLE);
+            deliveryTimeText.setVisibility(View.VISIBLE);
+            if (status.equalsIgnoreCase("placed")) {
+                deliveryTextHeader.setText("Delivery Expected On");
+            } else if (status.equalsIgnoreCase("accepted")) {
+                deliveryTextHeader.setText("Delivery Expected On");
+            } else if (status.equalsIgnoreCase("rejected")) {
+                deliveryTextHeader.setText("Delivery Rejected On");
+            } else if (status.equalsIgnoreCase("delivered")) {
+                deliveryTextHeader.setText("Delivered On");
+            } else if (status.equalsIgnoreCase("cancelled")) {
+                deliveryTextHeader.setText("Cancelled On");
+            } else if (status.equalsIgnoreCase("out for delivery")) {
+                deliveryTextHeader.setText("Out for Delivery On");
+            }
+        }
 
         if (payment_mode.equalsIgnoreCase("pod")) {
             paymentMode.setText("Pay on Delivery");
@@ -224,7 +225,8 @@ public class OrderViewActivity extends AppCompatActivity {
                         //  Toast.makeText(PlaceOrderActivity.this, "Payment Completed", Toast.LENGTH_SHORT).show();
                         Map<String, Object> data = new HashMap<>();
                         data.put("details", transactionDetails);
-                        data.put("timestamp", new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()));                       ;
+                        data.put("timestamp", new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()));
+                        ;
                         String key1 = firebaseDatabase.getReference().child("demands/" + key + "/payment").push().getKey();
                         firebaseDatabase.getReference().child("demands/" + key + "/payment/" + key1).setValue(data);
                     }
@@ -294,11 +296,6 @@ public class OrderViewActivity extends AppCompatActivity {
             rejectionText.setText(rejectionReason);
         }
 
-        if (userDp.equals("")) {
-            dp.setImageResource(R.drawable.nouser);
-        } else {
-            Picasso.with(OrderViewActivity.this).load(userDp).into(dp);
-        }
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Order Details");

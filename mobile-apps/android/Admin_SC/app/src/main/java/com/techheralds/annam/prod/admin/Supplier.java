@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.admin;
+package com.techheralds.annam.prod.admin;
 
 import java.util.Map;
 

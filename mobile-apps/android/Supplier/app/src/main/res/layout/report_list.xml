@@ -2,27 +2,35 @@
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:stretchColumns="1">
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:stretchColumns="*">
 
     <TableRow>
+
         <TextView
             android:id="@+id/itemName"
-            android:textStyle="bold"
-            android:layout_column="1"
-            android:textColor="#222"
+            android:padding="3dip"
             android:text="Tomato"
+            android:textColor="#222"
             android:textSize="16dp"
-            android:padding="3dip" />
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/itemAvailQuantity"
+            android:padding="3dip"
+            android:gravity="center"
+            android:textColor="#222"
+            android:textSize="16dp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/itemQuantity"
-            android:textStyle="bold"
+            android:padding="3dip"
             android:textColor="#222"
             android:gravity="center"
-            android:text="2.25kg"
-
             android:textSize="16dp"
-            android:padding="3dip" />
+            android:textStyle="bold" />
     </TableRow>
 
 </TableLayout>

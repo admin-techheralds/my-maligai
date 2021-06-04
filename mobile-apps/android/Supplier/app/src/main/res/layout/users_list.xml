@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/list_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -11,8 +12,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="horizontal"
         android:padding="16dp"
-        android:orientation="horizontal">
+        tools:ignore="UselessParent">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/avatar"
@@ -24,7 +26,7 @@
             android:src="@drawable/nouser" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
@@ -42,6 +44,15 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/admin"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginTop="-25dp"
+                android:textStyle="bold"
+                android:text="Main" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.customer;
+package com.techheralds.annam.prod.customer;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -17,11 +17,12 @@ public class demand {
     String payment_mode;
     String rejectionReason;
     String paid;
+    String saleId;
 
     public demand() {
     }
 
-    public demand(String consumer, String supplier, String deliveryTime, String status, String timeCreated, ArrayList<Map<String, Object>> demandList, ArrayList<Map<String, Object>> timeLine, String key, String address, double price, String payment_mode, String rejectionReason, String paid) {
+    public demand(String consumer, String supplier, String deliveryTime, String status, String timeCreated, ArrayList<Map<String, Object>> demandList, ArrayList<Map<String, Object>> timeLine, String key, String address, double price, String payment_mode, String rejectionReason, String paid, String saleId) {
         this.consumer = consumer;
         this.supplier = supplier;
         this.deliveryTime = deliveryTime;
@@ -35,6 +36,7 @@ public class demand {
         this.payment_mode = payment_mode;
         this.rejectionReason = rejectionReason;
         this.paid = paid;
+        this.saleId = saleId;
     }
 
     public String getConsumer() {
@@ -139,5 +141,13 @@ public class demand {
 
     public void setPaid(String paid) {
         this.paid = paid;
+    }
+
+    public String getSaleId() {
+        return saleId;
+    }
+
+    public void setSaleId(String saleId) {
+        this.saleId = saleId;
     }
 }

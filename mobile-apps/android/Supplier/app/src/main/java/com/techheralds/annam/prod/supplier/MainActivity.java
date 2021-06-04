@@ -74,6 +74,30 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                 R.id.nav_demands_report, R.id.nav_sales, R.id.nav_manage_consumers,
+                R.id.nav_my_profile)
+                .setDrawerLayout(drawer)
+                .build();
+        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
+
+        Intent i = getIntent();
+        if (i.getExtras() != null) {
+            String f = i.getExtras().getString("fragment");
+            if (f.equals("sales")) {
+                navController.navigate(R.id.nav_sales);
+            }
+            else if(f.equals("manage_customer")){
+                navController.navigate(R.id.nav_manage_consumers);
+            }
+        }
+
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -81,6 +105,53 @@ public class MainActivity extends AppCompatActivity {
 
         crashlytics.setCrashlyticsCollectionEnabled(true);
 
+        //On removing user by main supplier
+        SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("local", Context.MODE_PRIVATE);
+        final String mainSupplier = sharedPreferences.getString("mainSupplier", "");
+
+        if (!mainSupplier.equalsIgnoreCase("")) {
+            if (!mainSupplier.equalsIgnoreCase(user.getUid())) {
+                firebaseDatabase.getReference().child("main/" + user.getPhoneNumber()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() == null) {
+                            Toast.makeText(MainActivity.this, "You are removed by main supplier", Toast.LENGTH_SHORT).show();
+                            firebaseAuth.signOut();
+                            SharedPreferences preferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.clear();
+                            editor.apply();
+                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        } else {
+            firebaseDatabase.getReference().child("main/" + user.getPhoneNumber()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() != null) {
+                        SharedPreferences sharedPreferences = getSharedPreferences("local", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("mainSupplier", dataSnapshot.getValue().toString());
+                        editor.apply();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+        }
 
         firebaseDatabase.getReference().child("suppliers/" + user.getUid() + "/status").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -156,23 +227,10 @@ public class MainActivity extends AppCompatActivity {
         salesFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this,CreateSaleActivity.class);
+                Intent intent = new Intent(MainActivity.this, CreateSaleActivity.class);
                 startActivity(intent);
             }
         });
-
-        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        final NavigationView navigationView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_demands_list, R.id.nav_demands_report, R.id.nav_sales, R.id.nav_manage_consumers,
-                R.id.nav_my_profile)
-                .setDrawerLayout(drawer)
-                .build();
-        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
 
 
         final View header = navigationView.getHeaderView(0);
@@ -196,13 +254,11 @@ public class MainActivity extends AppCompatActivity {
                     inviteFab.setVisibility(View.GONE);
                     addItemsFab.setVisibility(View.VISIBLE);
                     salesFab.setVisibility(View.GONE);
-                }
-                else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("sales")) {
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("sales")) {
                     inviteFab.setVisibility(View.GONE);
                     addItemsFab.setVisibility(View.GONE);
                     salesFab.setVisibility(View.VISIBLE);
-                }
-                else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands report")) {
+                } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("demands report")) {
                     inviteFab.setVisibility(View.GONE);
                     addItemsFab.setVisibility(View.GONE);
                     salesFab.setVisibility(View.GONE);
@@ -299,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 firebaseAuth.signOut();
-                                SharedPreferences preferences =getSharedPreferences("local",Context.MODE_PRIVATE);
+                                SharedPreferences preferences = getSharedPreferences("local", Context.MODE_PRIVATE);
                                 SharedPreferences.Editor editor = preferences.edit();
                                 editor.clear();
                                 editor.apply();

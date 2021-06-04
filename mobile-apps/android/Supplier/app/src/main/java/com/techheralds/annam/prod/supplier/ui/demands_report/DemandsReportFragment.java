@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier.ui.demands_report;
+package com.techheralds.annam.prod.supplier.ui.demands_report;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
@@ -260,7 +260,7 @@ public class DemandsReportFragment extends Fragment {
                                                             }
                                                         }
                                                         if (reportArr.size() == 0) {
-                                                            Toast.makeText(getContext(), "You have no demands", Toast.LENGTH_SHORT).show();
+                                                            Toast.makeText(getContext(), "You have no orders", Toast.LENGTH_SHORT).show();
                                                         }
                                                         adapterList = new reportAdapterList(getContext(), reportArr);
                                                         listView.setAdapter(adapterList);
@@ -275,7 +275,7 @@ public class DemandsReportFragment extends Fragment {
                                         if (reportArr.size() == 0) {
                                             if (!isToasted) {
                                                 isToasted = true;
-                                                Toast.makeText(getContext(), "You have no demands", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(getContext(), "You have no orders", Toast.LENGTH_SHORT).show();
                                                 tableLayout.setVisibility(View.GONE);
                                             }
                                         } else {
@@ -283,7 +283,7 @@ public class DemandsReportFragment extends Fragment {
                                         }
                                     }
                                 } else {
-                                    Toast.makeText(getContext(), "You have no demands", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "You have no orders", Toast.LENGTH_SHORT).show();
                                 }
                             }
 

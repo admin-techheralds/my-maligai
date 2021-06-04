@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier.ui.my_profile;
+package com.techheralds.annam.prod.supplier.ui.my_profile;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -19,6 +19,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +42,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+import com.techheralds.annam.prod.supplier.AddItemsActivity;
 import com.techheralds.annam.prod.supplier.R;
 import com.techheralds.annam.prod.supplier.Supplier;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -74,8 +76,9 @@ public class MyProfileFragment extends Fragment {
     ArrayList<String> allTags;
     CircleImageView dp;
     TextView name, phoneNumber, headerText;
-    Button editBtn, addTagsBtn, addUserBtn, listUserBtn;
-    TextView smsTemplteText, upiIdText;
+    Button editBtn, addTagsBtn, addUserBtn, listUserBtn, inventoryBtn;
+    TextView smsTemplteText, upiIdText, upiHeader;
+    LinearLayout usersLayout;
     String smsTemplte, userUpiId = "";
     ArrayList<Map<String, Object>> users = new ArrayList<>();
     usersAdapterList usersAdapterList;
@@ -100,10 +103,17 @@ public class MyProfileFragment extends Fragment {
         headerText = root.findViewById(R.id.profileTagsheader);
         addUserBtn = root.findViewById(R.id.addUser);
         listUserBtn = root.findViewById(R.id.listUser);
+        upiHeader = root.findViewById(R.id.upiHeader);
+        inventoryBtn = root.findViewById(R.id.inventoryBtn);
+        usersLayout = root.findViewById(R.id.usersLayout);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("local", Context.MODE_PRIVATE);
         smsTemplte = sharedPreferences.getString("smsTemplate", "");
-        smsTemplteText.setText(smsTemplte);
+        if (smsTemplte == null) {
+            smsTemplteText.setText("SMS Template is empty");
+        } else {
+            smsTemplteText.setText(smsTemplte);
+        }
 
         if (smsTemplte != null) {
             if (smsTemplte.equalsIgnoreCase("")) {
@@ -135,11 +145,13 @@ public class MyProfileFragment extends Fragment {
         int width = Resources.getSystem().getDisplayMetrics().widthPixels;
 
         int halfWidth = width / 2;
+        int tWidth = width / 3;
 
         editBtn.setWidth(halfWidth - 16);
         addTagsBtn.setWidth(halfWidth - 16);
-        addUserBtn.setWidth(halfWidth - 16);
-        listUserBtn.setWidth(halfWidth - 16);
+        addUserBtn.setWidth(tWidth - 16);
+        listUserBtn.setWidth(tWidth - 16);
+        inventoryBtn.setWidth(tWidth - 16);
 
         dp = root.findViewById(R.id.profileUserDp);
         name = root.findViewById(R.id.profileUserName);
@@ -174,6 +186,14 @@ public class MyProfileFragment extends Fragment {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
+            }
+        });
+
+        inventoryBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getContext(), AddItemsActivity.class);
+                startActivity(i);
             }
         });
 
@@ -224,28 +244,50 @@ public class MyProfileFragment extends Fragment {
         editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle("Edit Profile");
-                builder.setItems(new CharSequence[]
-                                {"Edit Profile Picture", "Edit SMS Template", "Edit UPI Id"},
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                switch (which) {
-                                    case 0:
-                                        editProfile(0);
-                                        break;
+                if (getSupplierId().equalsIgnoreCase(firebaseAuth.getCurrentUser().getUid())) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("Edit Profile");
+                    builder.setItems(new CharSequence[]
+                                    {"Edit Profile Picture", "Edit SMS Template", "Edit UPI Id"},
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0:
+                                            editProfile(0);
+                                            break;
 
-                                    case 1:
-                                        editProfile(1);
-                                        break;
-                                    case 2:
-                                        editUpiId();
-                                        break;
+                                        case 1:
+                                            editProfile(1);
+                                            break;
+                                        case 2:
+                                            editUpiId();
+                                            break;
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                builder.create().show();
+                    builder.create().show();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("Edit Profile");
+                    builder.setItems(new CharSequence[]
+                                    {"Edit Profile Picture", "Edit SMS Template"},
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0:
+                                            editProfile(0);
+                                            break;
+
+                                        case 1:
+                                            editProfile(1);
+                                            break;
+                                    }
+                                }
+                            });
+
+                    builder.create().show();
+                }
             }
         });
 
@@ -268,26 +310,52 @@ public class MyProfileFragment extends Fragment {
 
                         if (!phNo.trim().equalsIgnoreCase("")) {
                             if (phNo.trim().length() == 10) {
-                                final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Adding User...");
+                                if (firebaseAuth.getCurrentUser().getPhoneNumber().equalsIgnoreCase("+91" + phNo.trim())) {
+                                    Toast.makeText(getContext(), "You don't need to add yourself", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Adding User...");
+                                    firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/+91" + phNo).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.getValue() != null) {
+                                                progressDialog.dismiss();
+                                                Toast.makeText(getContext(), "User already added", Toast.LENGTH_SHORT).show();
+                                            } else {
 
-                                firebaseDatabase.getReference().child("suppliers/").orderByChild("phoneNumber").equalTo("+91" + phNo.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
-                                        if (dataSnapshot1.getChildrenCount() > 0) {
-                                            for (DataSnapshot ds : dataSnapshot1.getChildren()) {
-                                                final Supplier data = ds.getValue(Supplier.class);
-                                                firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/+91" + phNo.trim()).setValue(1).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                firebaseDatabase.getReference().child("suppliers/").orderByChild("phoneNumber").equalTo("+91" + phNo.trim()).addListenerForSingleValueEvent(new ValueEventListener() {
                                                     @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        firebaseDatabase.getReference().child("main/+91" + phNo.trim()).setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                            @Override
-                                                            public void onSuccess(Void aVoid) {
-                                                                firebaseDatabase.getReference().child("suppliers/" + data.getUid() + "/mainSupplier").setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                                        if (dataSnapshot1.getChildrenCount() > 0) {
+                                                            for (DataSnapshot ds : dataSnapshot1.getChildren()) {
+                                                                final Supplier data = ds.getValue(Supplier.class);
+                                                                firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/+91" + phNo.trim()).setValue(1).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                     @Override
                                                                     public void onSuccess(Void aVoid) {
-                                                                        progressDialog.dismiss();
-                                                                        bottomSheetDialog.dismiss();
-                                                                        Toast.makeText(getContext(), "User Added", Toast.LENGTH_SHORT).show();
+                                                                        firebaseDatabase.getReference().child("main/+91" + phNo.trim()).setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                            @Override
+                                                                            public void onSuccess(Void aVoid) {
+                                                                                firebaseDatabase.getReference().child("suppliers/" + data.getUid() + "/mainSupplier").setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                                    @Override
+                                                                                    public void onSuccess(Void aVoid) {
+                                                                                        progressDialog.dismiss();
+                                                                                        bottomSheetDialog.dismiss();
+                                                                                        Toast.makeText(getContext(), "User Added", Toast.LENGTH_SHORT).show();
+                                                                                    }
+                                                                                }).addOnFailureListener(new OnFailureListener() {
+                                                                                    @Override
+                                                                                    public void onFailure(@NonNull Exception e) {
+                                                                                        progressDialog.dismiss();
+                                                                                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                                            @Override
+                                                                            public void onFailure(@NonNull Exception e) {
+                                                                                progressDialog.dismiss();
+                                                                                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                            }
+                                                                        });
                                                                     }
                                                                 }).addOnFailureListener(new OnFailureListener() {
                                                                     @Override
@@ -297,56 +365,49 @@ public class MyProfileFragment extends Fragment {
                                                                     }
                                                                 });
                                                             }
-                                                        }).addOnFailureListener(new OnFailureListener() {
-                                                            @Override
-                                                            public void onFailure(@NonNull Exception e) {
-                                                                progressDialog.dismiss();
-                                                                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        });
+                                                        } else {
+                                                            firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/+91" + phNo.trim()).setValue(1).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void aVoid) {
+                                                                    firebaseDatabase.getReference().child("main/+91" + phNo.trim()).setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                        @Override
+                                                                        public void onSuccess(Void aVoid) {
+                                                                            progressDialog.dismiss();
+                                                                            bottomSheetDialog.dismiss();
+                                                                            Toast.makeText(getContext(), "User Added", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                                        @Override
+                                                                        public void onFailure(@NonNull Exception e) {
+                                                                            progressDialog.dismiss();
+                                                                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }).addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    progressDialog.dismiss();
+                                                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            });
+                                                        }
                                                     }
-                                                }).addOnFailureListener(new OnFailureListener() {
+
                                                     @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        progressDialog.dismiss();
-                                                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                                                     }
                                                 });
                                             }
-                                        } else {
-                                            firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/+91" + phNo.trim()).setValue(1).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-                                                    firebaseDatabase.getReference().child("main/+91" + phNo.trim()).setValue(getSupplierId()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                        @Override
-                                                        public void onSuccess(Void aVoid) {
-                                                            progressDialog.dismiss();
-                                                            bottomSheetDialog.dismiss();
-                                                            Toast.makeText(getContext(), "User Added", Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }).addOnFailureListener(new OnFailureListener() {
-                                                        @Override
-                                                        public void onFailure(@NonNull Exception e) {
-                                                            progressDialog.dismiss();
-                                                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    });
-                                                }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
                                         }
-                                    }
 
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                    }
-                                });
+                                        }
+                                    });
+                                }
                             } else {
                                 Toast.makeText(getContext(), "Enter 10 Digit Phone Number", Toast.LENGTH_SHORT).show();
                             }
@@ -374,17 +435,51 @@ public class MyProfileFragment extends Fragment {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getValue() != null) {
-                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            firebaseDatabase.getReference().child("suppliers/" + getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.getValue() != null) {
+                                        Map<String, Object> data;
+                                        data = (Map<String, Object>) dataSnapshot.getValue();
+                                        data.put("main", "true");
+                                        users.add(data);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                            for (final DataSnapshot ds : dataSnapshot.getChildren()) {
                                 firebaseDatabase.getReference().child("suppliers/").orderByChild("phoneNumber").equalTo(ds.getKey())
                                         .addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
-                                                   Object data = ds1.getValue();
+                                                if (dataSnapshot.getChildrenCount() > 0) {
 
-                                                    users.add((Map<String, Object>) data);
+                                                    for (DataSnapshot ds1 : dataSnapshot.getChildren()) {
+                                                        if (ds1.getValue() != null) {
+                                                            Object data = ds1.getValue();
 
-                                                    usersAdapterList = new usersAdapterList(getContext(),users);
+                                                            users.add((Map<String, Object>) data);
+
+                                                            usersAdapterList = new usersAdapterList(getContext(), users);
+                                                            listView.setAdapter(usersAdapterList);
+
+                                                            progressDialog.dismiss();
+                                                            bottomSheetDialog.show();
+                                                        }
+                                                    }
+                                                } else {
+                                                    Map<String, Object> data = new HashMap<>();
+
+                                                    data.put("name", "Supplier Not Created Yet");
+                                                    data.put("phoneNumber", ds.getKey());
+
+                                                    users.add(data);
+
+                                                    usersAdapterList = new usersAdapterList(getContext(), users);
                                                     listView.setAdapter(usersAdapterList);
 
                                                     progressDialog.dismiss();
@@ -445,6 +540,9 @@ public class MyProfileFragment extends Fragment {
         if (mainSupplier.equalsIgnoreCase("")) {
             return firebaseAuth.getCurrentUser().getUid();
         } else {
+            upiHeader.setVisibility(View.GONE);
+            upiIdText.setVisibility(View.GONE);
+            usersLayout.setVisibility(View.GONE);
             return mainSupplier;
         }
     }
@@ -845,15 +943,59 @@ public class MyProfileFragment extends Fragment {
             TextView name = view.findViewById(R.id.name);
             CircleImageView avatar = view.findViewById(R.id.avatar);
             TextView number = view.findViewById(R.id.phoneNumber);
+            TextView adminText = view.findViewById(R.id.admin);
 
             name.setText(users.get(position).get("name").toString());
             number.setText(users.get(position).get("phoneNumber").toString());
-
-            if(users.get(position).get("photo") != null){
-                if(!users.get(position).get("photo").equals("")){
+            if (users.get(position).get("main") != null) {
+                adminText.setVisibility(View.VISIBLE);
+            }
+            if (users.get(position).get("photo") != null) {
+                if (!users.get(position).get("photo").equals("")) {
                     Picasso.with(getContext()).load(users.get(position).get("photo").toString()).into(avatar);
                 }
             }
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (users.get(position).get("main") == null) {
+                        new AlertDialog.Builder(getContext()).setTitle("Remove User").setMessage("Are you sure to remove " + users.get(position).get("phoneNumber") + " from users list?")
+                                .setNegativeButton("Cancel", null).setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Removing User...");
+                                firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/users/" + users.get(position).get("phoneNumber")).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        firebaseDatabase.getReference().child("main/" + users.get(position).get("phoneNumber")).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                firebaseDatabase.getReference().child("suppliers/" + users.get(position).get("uid") + "/mainSupplier").removeValue();
+                                                progressDialog.dismiss();
+                                                users.remove(users.get(position));
+                                                usersAdapterList.notifyDataSetChanged();
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                progressDialog.dismiss();
+                                                Toast.makeText(getContext(), "Try again", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        progressDialog.dismiss();
+                                        Toast.makeText(getContext(), "Try again", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }).show();
+                    }
+                }
+            });
 
             return view;
         }

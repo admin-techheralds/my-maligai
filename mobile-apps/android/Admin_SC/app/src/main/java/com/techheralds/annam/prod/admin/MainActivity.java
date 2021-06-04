@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.admin;
+package com.techheralds.annam.prod.admin;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Suppliers");
+            getSupportActionBar().setTitle("List of Suppliers");
         }
 
         firebaseDatabase1 = firebaseDatabase = FirebaseDatabase.getInstance();
@@ -236,12 +236,12 @@ public class MainActivity extends AppCompatActivity {
                     final Boolean[] selectedStatus = new Boolean[1];
                     spinner = bottomSheetDialog.findViewById(R.id.spinner);
                     updateBtn = bottomSheetDialog.findViewById(R.id.btn);
-                    buildBtn = bottomSheetDialog.findViewById(R.id.buildBtn);
+                   // buildBtn = bottomSheetDialog.findViewById(R.id.buildBtn);
                     smsBtn = bottomSheetDialog.findViewById(R.id.sendSmsbtn);
                     stopBtn = bottomSheetDialog.findViewById(R.id.stopBtn);
-                    buildStatus = bottomSheetDialog.findViewById(R.id.buildStatus);
-                    buildingStatusTxt = bottomSheetDialog.findViewById(R.id.buildingStatusTxt);
-                    buildingStatus = bottomSheetDialog.findViewById(R.id.buildingStatus);
+                  //  buildStatus = bottomSheetDialog.findViewById(R.id.buildStatus);
+                  //  buildingStatusTxt = bottomSheetDialog.findViewById(R.id.buildingStatusTxt);
+                 //   buildingStatus = bottomSheetDialog.findViewById(R.id.buildingStatus);
 
                     ArrayList<String> spinnerArr = new ArrayList<>();
                     spinnerArr.add("Enable");
@@ -274,14 +274,14 @@ public class MainActivity extends AppCompatActivity {
 
                     if (suppliers.get(position).getBuild_details() != null) {
                         String status = suppliers.get(position).getBuild_details().get("status").toString();
-                        buildStatus.setText(capitalize(status));
+                      //  buildStatus.setText(capitalize(status));
 
                         if (status.equalsIgnoreCase("completed")) {
                             smsBtn.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        buildStatus.setText("No Build");
-                        buildBtn.setVisibility(View.VISIBLE);
+                      //  buildStatus.setText("No Build");
+                        //buildBtn.setVisibility(View.VISIBLE);
                     }
 
                     //Set Building Status
@@ -292,11 +292,11 @@ public class MainActivity extends AppCompatActivity {
                         @SuppressLint("RestrictedApi")
                         @Override
                         public void run() {
-                            buildingStatus.setText(buildingSts);
+                       //     buildingStatus.setText(buildingSts);
                             handler.postDelayed(this, seconds);
 
                             if (buildingSts.equalsIgnoreCase("APK build successful.You can share link via SMS")) {
-                                buildStatus.setText("Completed");
+                         //       buildStatus.setText("Completed");
                                 smsBtn.setVisibility(View.VISIBLE);
                                 stopBtn.setVisibility(View.GONE);
                                 bottomSheetDialog.setCancelable(true);
@@ -309,25 +309,25 @@ public class MainActivity extends AppCompatActivity {
 
                     }, seconds);
 
-                    buildBtn.setOnClickListener(new View.OnClickListener() {
+                  /*  buildBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             bottomSheetDialog.setCancelable(false);
-                            buildingStatusTxt.setVisibility(View.VISIBLE);
+                      //      buildingStatusTxt.setVisibility(View.VISIBLE);
                             buildingSts = "Checking Environment...";
                             isEnvBuildRunning();
 
                             buildBtn.setVisibility(View.GONE);
                             stopBtn.setVisibility(View.VISIBLE);
                         }
-                    });
+                    });*/
 
                     stopBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             buildingSts = "Build stopped";
                             bottomSheetDialog.setCancelable(true);
-                            buildBtn.setVisibility(View.VISIBLE);
+                         //   buildBtn.setVisibility(View.VISIBLE);
                             stopBtn.setVisibility(View.GONE);
                             stopBuildEnv();
                         }

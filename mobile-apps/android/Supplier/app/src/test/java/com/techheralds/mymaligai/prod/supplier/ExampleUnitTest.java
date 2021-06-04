@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.supplier;
+package com.techheralds.annam.prod.supplier;
 
 import org.junit.Test;
 

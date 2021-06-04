@@ -12,52 +12,41 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Supplier"
-                android:textSize="16dp"
-                android:textStyle="bold" />
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/supplierDp"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/rounded_corners" />
-        </LinearLayout>
-
-        <LinearLayout
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="25dp"
-            android:orientation="vertical">
+            android:textColor="#222222"
+            android:textSize="20dp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Select Delivery Date and Time"
-                android:textSize="16dp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
-            <EditText
-                android:id="@+id/deleveryTImeBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:editable="false"
-                android:hint="Minimum 6 hours from now"
-                tools:ignore="Deprecated" />
+
+        <TextView
+            android:id="@+id/sDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="start"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/eDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="end"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
         </LinearLayout>
-    </LinearLayout>
 
     <TextView
         android:id="@+id/supplierName"
@@ -71,22 +60,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Select Category"
+        android:text="Sale Items"
         android:textSize="16dp"
         android:textStyle="bold" />
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Item in Inventory"
-        android:textSize="16dp"
-        android:textStyle="bold" />
 
     <!--    <SearchView
             android:id="@+id/searchView"

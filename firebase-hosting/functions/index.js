@@ -851,7 +851,7 @@ app.post("/createUser", (req, res) => {
 
   //we need to change the implementation for creating the user..
   var main_supplier_id = req.body['supplier_id']
-  
+
 });
 
 // exports.uploadAndProcessSupplierInventories = functions.https.onRequest(uploadAndProcessSupplierInventories);
@@ -869,8 +869,13 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
   if (status === "Accepted") {
     const payload = {
       notification: {
+        click_action: ".MainActivity",
         title: "Order Accepted" + " (Order ID: " + orderId + ")",
         body: "Order is expected to deliver on " + deliveryTime,
+      },
+      data: {
+        orderId: orderId,
+        typeOfMsg: "order"
       }
     };
 
@@ -882,8 +887,13 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
   } else if (status === "Rejected") {
     const payload = {
       notification: {
+        click_action: ".MainActivity",
         title: "Order Rejected" + " (Order ID: " + orderId + ")",
         body: "Order rejected on " + deliveryTime,
+      },
+      data: {
+        orderId: orderId,
+        typeOfMsg: "order"
       }
     };
 
@@ -894,8 +904,13 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
   } else if (status === "Delivered") {
     const payload = {
       notification: {
+        click_action: ".MainActivity",
         title: "Order Delivered" + " (Order ID: " + orderId + ")",
         body: "Order delivered on " + deliveryTime,
+      },
+      data: {
+        orderId: orderId,
+        typeOfMsg: "order"
       }
     };
 
@@ -906,14 +921,53 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
   } else if (status === "Out for Delivery") {
     const payload = {
       notification: {
+        click_action: ".MainActivity",
         title: "Order Out for Delivery" + " (Order ID: " + orderId + ")",
         body: "Order out for delivery on " + deliveryTime,
+      },
+      data: {
+        orderId: orderId,
+        typeOfMsg: "order"
       }
     };
 
     return admin.database().ref('tokens/' + consumer).once("value", tokenSnap => {
       var token = tokenSnap.val();
       return admin.messaging().sendToDevice(token, payload);
+    });
+  }
+});
+
+
+exports.sendPublishNotify = functions.database.ref("sales/{supplierId}/{saleId}/").onUpdate((snap, context) => {
+  const data = snap.after.val();
+  const status = data["status"];
+  const name = data["name"];
+  const desc = data["desc"];
+  const saleId = snap.after.key;
+  const supplierId = data["supplier"];
+
+  console.log(saleId);
+
+  if (status === "published") {
+
+    const payload = {
+      notification: {
+        click_action: ".MainActivity",
+        title: name + " is live now",
+        body: desc ? desc : "Place your orders",
+      },
+      data: {
+        saleId: saleId,
+        supplierId: supplierId,
+        typeOfMsg: "sale"
+      }
+    };
+
+    return admin.database().ref('tokens/').once("value", tokenSnap => {
+      var tokens = Object.values(tokenSnap.val());
+
+      return admin.messaging().sendToDevice(tokens, payload);
     });
   }
 });

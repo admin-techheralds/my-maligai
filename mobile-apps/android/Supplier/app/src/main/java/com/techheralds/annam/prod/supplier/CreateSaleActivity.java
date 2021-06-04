@@ -1,17 +1,31 @@
 package com.techheralds.annam.prod.supplier;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavDeepLinkBuilder;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,12 +35,15 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,22 +60,31 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.security.SecureRandom;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CreateSaleActivity extends AppCompatActivity {
-    Button addItemsBtn;
+    Button saveBtn, cancelBtn, viewBundlesBtn;
     ArrayList<inventory> items;
     ArrayList<Map<String, Object>> selectedItems;
-    inventoryAdapterList inventoryAdapterList;
-    inventoryAdapterList1 inventoryAdapterList1;
+    ArrayList<bundle> bundles;
     FirebaseDatabase firebaseDatabase;
     FirebaseUser firebaseUser;
     FirebaseAuth firebaseAuth;
     ListView listView;
+    BottomSheetDialog bottomSheetDialog, viewBottomSheet;
+    int currBundle = 0;
+    EditText startDateIp, endDateIp, saleNameIp, saleDescIp;
+    Boolean canRemoveBundle = false;
+    int mDay, mMonth, mYear, mHour, mMinute;
+    Calendar c;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,99 +100,150 @@ public class CreateSaleActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+        bottomSheetDialog = new BottomSheetDialog(CreateSaleActivity.this);
+        bottomSheetDialog.setContentView(R.layout.add_bundle_sheet);
+        viewBottomSheet = new BottomSheetDialog(CreateSaleActivity.this);
+        viewBottomSheet.setContentView(R.layout.view_bundle_sheet);
 
-        addItemsBtn = findViewById(R.id.addItemsBtn);
+        saveBtn = findViewById(R.id.saveBtn);
+        cancelBtn = findViewById(R.id.cancelBtn);
+        viewBundlesBtn = findViewById(R.id.viewBundlesBtn);
+        startDateIp = findViewById(R.id.startDateIp);
+        endDateIp = findViewById(R.id.endDateIp);
         items = new ArrayList<>();
         selectedItems = new ArrayList<>();
+        bundles = new ArrayList<>();
         listView = findViewById(R.id.listView);
+        saleNameIp = findViewById(R.id.saleNameIp);
+        saleDescIp = findViewById(R.id.saleDescIp);
 
-        addItemsBtn.setOnClickListener(new View.OnClickListener() {
+        int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+
+        int halfWidth = width / 2;
+
+        saveBtn.setWidth(halfWidth - 16);
+        cancelBtn.setWidth(halfWidth - 16);
+        startDateIp.setWidth(halfWidth - 16);
+        endDateIp.setWidth(halfWidth - 16);
+
+        startDateIp.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (b) {
+                    try {
+                        datePicker("start");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        endDateIp.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (b) {
+                    try {
+                        datePicker("end");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View view) {
-                BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(CreateSaleActivity.this);
+                String saleName = saleNameIp.getText().toString().trim();
+                String saleDesc = saleDescIp.getText().toString().trim();
+                String startDate = startDateIp.getText().toString().trim();
+                String endDate = endDateIp.getText().toString().trim();
 
-                bottomSheetDialog.setContentView(R.layout.select_items_sheet);
+                if (!saleName.equals("")) {
+                    if (!startDate.equals("")) {
+                        if (!endDate.equals("")) {
+                            Date date1 = null;
+                            Date date2 = null;
 
-                final ListView listView = bottomSheetDialog.findViewById(R.id.listView);
-                final ArrayList<Map<String, Object>> tags;
-                final ArrayList<String> tempTags; //for spinner
-                final Spinner spinner = bottomSheetDialog.findViewById(R.id.selectTagBtn);
-                tags = new ArrayList<>();
-                tempTags = new ArrayList<>();
-                final ProgressDialog progressDialog = ProgressDialog.show(CreateSaleActivity.this, null, "Please Wait...");
+                            try {
+                                date1 = new SimpleDateFormat("dd/MM/yyyy, HH:mm a").parse(startDate);
+                                date2 = new SimpleDateFormat("dd/MM/yyyy, HH:mm a").parse(endDate);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
 
-                //Load preferred tags
-                firebaseDatabase.getReference().child("suppliers/" + getSupplierId() + "/tags").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getChildrenCount() > 0) {
-                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                Map<String, Object> data = new HashMap<>();
-                                data.put("category", ds.getValue());
-                                data.put("id", ds.getKey());
-                                tags.add(data);
-                                tempTags.add(capitalize(ds.getValue().toString()));
+                            Long t1 = date1.getTime();
+                            Long t2 = date2.getTime();
 
-                                ArrayAdapter<String> adapter = new ArrayAdapter<>(getBaseContext(), R.layout.support_simple_spinner_dropdown_item, tempTags);
-                                spinner.setAdapter(adapter);
+                            if (t1 < t2) {
 
-                                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                final Map<String, Object> data = new HashMap<>();
+                                data.put("name", saleName);
+                                data.put("desc", saleDesc);
+                                data.put("startDate", startDate);
+                                data.put("endDate", endDate);
+                                data.put("status", "not published");
+                                data.put("supplier", getSupplierId());
+
+                                final ProgressDialog progressDialog = ProgressDialog.show(CreateSaleActivity.this, null, "Creating Sale...");
+
+                                firebaseDatabase.getReference().child("sales/" + getSupplierId()).orderByChild("name").equalTo(saleName).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
-                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                        final ProgressDialog progressDialog = ProgressDialog.show(CreateSaleActivity.this, null, "Loading items with the category '" + capitalize(tags.get(position).get("category").toString()) + "'.Please wait...");
-
-                                        firebaseDatabase.getReference().child("inventory/" + getSupplierId() + "/" + tags.get(position).get("id")).addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                items.clear();
-                                                inventoryAdapterList = new inventoryAdapterList(CreateSaleActivity.this, items);
-                                                listView.setAdapter(inventoryAdapterList);
-                                                if (dataSnapshot.getChildrenCount() > 0) {
-                                                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                                        progressDialog.dismiss();
-                                                        inventory data = ds.getValue(inventory.class);
-                                                        items.add(data);
-                                                        inventoryAdapterList = new inventoryAdapterList(CreateSaleActivity.this, items);
-                                                        listView.setAdapter(inventoryAdapterList);
-                                                    }
-                                                } else {
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(CreateSaleActivity.this, "No inventory items in this category", Toast.LENGTH_SHORT).show();
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.getValue() != null) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(CreateSaleActivity.this, "Sale Name already present", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            firebaseDatabase.getReference().child("sales/" + getSupplierId()).push().setValue(data).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Intent intent = new Intent(CreateSaleActivity.this, MainActivity.class);
+                                                    intent.putExtra("fragment", "sales");
+                                                    startActivity(intent);
+                                                    finish();
                                                 }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                progressDialog.dismiss();
-                                                Toast.makeText(CreateSaleActivity.this, "Try again", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                                        //  currTag = tags.get(position).get("category").toString();
-                                        // currId = tags.get(position).get("id").toString();
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    progressDialog.dismiss();
+                                                    Toast.makeText(CreateSaleActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }
                                     }
 
                                     @Override
-                                    public void onNothingSelected(AdapterView<?> parent) {
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
                                     }
                                 });
-                                progressDialog.dismiss();
+                            } else {
+                                Toast.makeText(CreateSaleActivity.this, "Check your Date & Time", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            progressDialog.dismiss();
-                            Toast.makeText(CreateSaleActivity.this, "You haven't added any categories", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CreateSaleActivity.this, "Select End Date", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Toast.makeText(CreateSaleActivity.this, "Select Start Date", Toast.LENGTH_SHORT).show();
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(CreateSaleActivity.this, "Can't Load Data", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                bottomSheetDialog.show();
+                } else {
+                    Toast.makeText(CreateSaleActivity.this, "Enter Sale Name", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
     }
 
     public String getSupplierId() {
@@ -187,10 +264,10 @@ public class CreateSaleActivity extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 break;
+
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     private String capitalize(String capString) {
         StringBuffer capBuffer = new StringBuffer();
@@ -200,133 +277,6 @@ public class CreateSaleActivity extends AppCompatActivity {
         }
 
         return capMatcher.appendTail(capBuffer).toString();
-    }
-
-       public class inventoryAdapterList extends BaseAdapter {
-        Context context;
-        ArrayList<inventory> inventories;
-
-        public inventoryAdapterList(Context context, ArrayList<inventory> inventories) {
-            this.context = context;
-            this.inventories = inventories;
-        }
-
-        @Override
-        public int getCount() {
-            return inventories.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return 0;
-        }
-
-        @Override
-        public View getView(final int position, View view, ViewGroup parent) {
-            view = LayoutInflater.from(context).inflate(R.layout.select_item_list, parent, false);
-
-            if (inventories.size() > 0) {
-                TextView title = view.findViewById(R.id.itemName);
-                ImageView image = view.findViewById(R.id.itemImg);
-                CheckBox checkBox = view.findViewById(R.id.checkBox);
-
-                title.setText(capitalize(inventories.get(position).getName()));
-
-                if (inventories.get(position).getImg() != null) {
-                    if (!inventories.get(position).getImg().equals("")) {
-                        Picasso.with(CreateSaleActivity.this).load(inventories.get(position).getImg()).into(image);
-                    }
-                }
-
-                if (findIndexOf(inventories.get(position).getSku()) > -1) {
-                    checkBox.setChecked(true);
-                }
-
-                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                        if (findIndexOf(inventories.get(position).getSku()) == -1) {
-                            Map<String, Object> data = new HashMap<>();
-                            data.put("name", inventories.get(position).getName());
-                            data.put("sku", inventories.get(position).getSku());
-                            data.put("img", inventories.get(position).getImg());
-                            selectedItems.add(data);
-                        } else {
-                            Map<String, Object> data = new HashMap<>();
-                            data.put("name", inventories.get(position).getName());
-                            data.put("sku", inventories.get(position).getSku());
-                            data.put("img", inventories.get(position).getImg());
-                            selectedItems.remove(data);return;
-                        }
-                        inventoryAdapterList1 = new inventoryAdapterList1(CreateSaleActivity.this, selectedItems);
-                        listView.setAdapter(inventoryAdapterList1);
-                    }
-                });
-            }
-
-            return view;
-        }
-
-    }
-
-    public class inventoryAdapterList1 extends BaseAdapter {
-        Context context;
-        ArrayList<Map<String,Object>> inventories;
-
-        public inventoryAdapterList1(Context context, ArrayList<Map<String,Object>> inventories) {
-            this.context = context;
-            this.inventories = inventories;
-        }
-
-        @Override
-        public int getCount() {
-            return inventories.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return 0;
-        }
-
-        @Override
-        public View getView(final int position, View view, ViewGroup parent) {
-            view = LayoutInflater.from(context).inflate(R.layout.select_item_list, parent, false);
-
-            if (inventories.size() > 0) {
-                TextView title = view.findViewById(R.id.itemName);
-                ImageView image = view.findViewById(R.id.itemImg);
-                CheckBox checkBox = view.findViewById(R.id.checkBox);
-
-                title.setText(capitalize(inventories.get(position).get("name").toString()));
-
-                if (inventories.get(position).get("img") != null) {
-                    if (!inventories.get(position).get("img").toString().equals("")) {
-                        Picasso.with(CreateSaleActivity.this).load(inventories.get(position).get("img").toString()).into(image);
-                    }
-                }
-
-                if (findIndexOf(inventories.get(position).get("sku").toString()) > -1) {
-                    checkBox.setChecked(true);
-                }
-
-                inventoryAdapterList1 = new inventoryAdapterList1(CreateSaleActivity.this, selectedItems);
-                listView.setAdapter(inventoryAdapterList1);
-
-            }
-
-            return view;
-        }
-
     }
 
     public int findIndexOf(String itemName) {
@@ -339,4 +289,90 @@ public class CreateSaleActivity extends AppCompatActivity {
 
         return index;
     }
+
+    public int findIndexOf1(String itemName) {
+        int index = -1;
+        for (int i = 0; i < bundles.get(currBundle).getItems().size(); i++) {
+            if (bundles.get(currBundle).getItems().get(i).get("sku").toString().trim().toLowerCase().equals(itemName.toLowerCase())) {
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void datePicker(final String date) throws ParseException {
+        c = Calendar.getInstance();
+        int mYearParam = mYear;
+        int mMonthParam = mMonth - 1;
+        int mDayParam = mDay;
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(CreateSaleActivity.this,
+                new DatePickerDialog.OnDateSetListener() {
+
+                    @Override
+                    public void onDateSet(DatePicker view, int year,
+                                          int monthOfYear, int dayOfMonth) {
+                        mMonth = monthOfYear + 1;
+                        mYear = year;
+                        mDay = dayOfMonth;
+                        show_Timepicker(date);
+
+                    }
+                }, mYearParam, mMonthParam, mDayParam);
+        if (date.equalsIgnoreCase("start")) {
+            datePickerDialog.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
+        } else {
+            String myDate = startDateIp.getText().toString().trim();
+            android.icu.text.SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy, HH:mm a");
+            Date d = sdf.parse(myDate);
+            long millis = d.getTime();
+
+            datePickerDialog.getDatePicker().setMinDate(millis);
+        }
+        datePickerDialog.show();
+    }
+
+    private void show_Timepicker(final String date) {
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(CreateSaleActivity.this,
+                new TimePickerDialog.OnTimeSetListener() {
+
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onTimeSet(TimePicker view, int pHour,
+                                          int pMinute) {
+
+                        mHour = pHour;
+                        if (pMinute < 10) {
+                            mMinute = Integer.parseInt("0" + pMinute);
+                        } else {
+                            mMinute = pMinute;
+                        }
+                        String AM_PM;
+                        if (mHour < 12) {
+                            if (mHour == 0) {
+                                mHour = 12;
+                            }
+                            AM_PM = "AM";
+                        } else {
+                            if ((mHour - 12) > 0) {
+                                mHour = mHour - 12;
+                            }
+                            AM_PM = "PM";
+                        }
+
+                        if (date.equals("start")) {
+                            startDateIp.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":" + (mMinute < 10 ? "0" : "") + mMinute + AM_PM);
+                        } else {
+                            endDateIp.setText(mDay + "/" + mMonth + "/" + mYear + ", " + mHour + ":" + (mMinute < 10 ? "0" : "") + mMinute + AM_PM);
+                        }
+                    }
+                }, mHour, mMinute, false);
+
+        timePickerDialog.show();
+    }
+
+
 }

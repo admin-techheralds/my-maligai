@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.supplier.ui.demands_list;
+package com.techheralds.annam.prod.supplier.ui.demands_list;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -70,7 +70,7 @@ public class DemandsListFragment extends Fragment {
         firebaseUser = firebaseAuth.getCurrentUser();
 
 
-        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Loading Demands.Please wait...");
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Loading Orders.Please wait...");
         firebaseDatabase.getReference().child("demands").orderByChild("supplier").equalTo(getSupplierId()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

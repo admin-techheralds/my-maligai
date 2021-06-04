@@ -1,6 +1,7 @@
-package com.techheralds.mymaligai.prod.customer;
+package com.techheralds.annam.prod.customer;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -38,7 +39,6 @@ import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.squareup.picasso.Picasso;
-import com.techheralds.mymaligai.prod.customer.R;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -49,6 +49,9 @@ import android.view.Menu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.log4j.chainsaw.Main;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseRemoteConfig firebaseRemoteConfig;
     TextView versionName;
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +75,121 @@ public class MainActivity extends AppCompatActivity {
 
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
-               //Get FCM token
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+            String msgType = extras.getString("typeOfMsg");
+
+            if (msgType.equalsIgnoreCase("order")) {
+                String orderId = extras.getString("orderId");
+                //  Toast.makeText(this, "ORDER " + orderId, Toast.LENGTH_SHORT).show();
+                final ProgressDialog progressDialog12 = ProgressDialog.show(this, null, "Please Wait...");
+
+                firebaseDatabase.getReference().child("demands/" + orderId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            final demand data = dataSnapshot.getValue(demand.class);
+
+                            firebaseDatabase.getReference().child("sales/" + data.getSupplier() + "/" + data.getSaleId() + "/name").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                    if (dataSnapshot1.getValue() != null) {
+                                        final StringBuilder stringBuilder = new StringBuilder();
+
+                                        for (Map<String, Object> item : data.getDemandList()) {
+                                            String iname = item.get("name").toString();
+                                            String quantity = item.get("quantity").toString();
+                                            stringBuilder.append(iname + "(" + quantity + ") ");
+                                        }
+
+                                        Intent intent = new Intent(MainActivity.this, OrderViewActivity.class);
+                                        intent.putExtra("name", dataSnapshot1.getValue().toString());
+                                        intent.putExtra("demandList", data.getDemandList());
+                                        intent.putExtra("timeline", data.getTimeLine());
+                                        //intent.putExtra("dp", userDp[0]);
+                                        intent.putExtra("supplier", data.getSupplier());
+                                        intent.putExtra("consumer", data.getConsumer());
+                                        Bundle b = new Bundle();
+                                        b.putDouble("price", data.getPrice());
+                                        intent.putExtras(b);
+                                        intent.putExtra("status", data.getStatus());
+                                        intent.putExtra("address", data.getAddress());
+                                        intent.putExtra("deliveryTime", data.getDeliveryTime());
+                                        intent.putExtra("createdOn", data.getTimeCreated());
+                                        intent.putExtra("items", stringBuilder.toString());
+                                        intent.putExtra("key", data.getKey());
+                                        intent.putExtra("paid", data.getPaid());
+                                        intent.putExtra("payment_mode", data.getPayment_mode());
+
+                                        if (data.getRejectionReason() != null) {
+                                            intent.putExtra("rejectionReason", data.getRejectionReason());
+                                        } else {
+                                            intent.putExtra("rejectionReason", "");
+                                        }
+                                        progressDialog12.dismiss();
+                                        startActivity(intent);
+                                    } else {
+
+                                        progressDialog12.dismiss();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+
+                        } else {
+                            progressDialog12.dismiss();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            } else if (msgType.equalsIgnoreCase("sale")) {
+                final String saleId = extras.getString("saleId");
+                final String supplierId = extras.getString("supplierId");
+
+                final ProgressDialog progressDialog12 = ProgressDialog.show(this, null, "Please Wait...");
+
+                firebaseDatabase.getReference().child("sales/" + supplierId + "/" + saleId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            Map<String, Object> data = (Map<String, Object>) dataSnapshot.getValue();
+
+                            Intent intent = new Intent(MainActivity.this, PlaceOrderActivity.class);
+                            intent.putExtra("key", saleId);
+                            intent.putExtra("title", data.get("name").toString());
+                            intent.putExtra("uid", supplierId);
+                            intent.putExtra("desc", data.get("desc").toString());
+                            intent.putExtra("startDate", data.get("startDate").toString());
+                            intent.putExtra("endDate", data.get("endDate").toString());
+                            intent.putExtra("status", data.get("status").toString());
+                            intent.putExtra("items", ((ArrayList<Map<String, Object>>) data.get("items")));
+                            intent.putExtra("bundles", ((ArrayList<Map<String, Object>>) data.get("bundles")));
+                            startActivity(intent);
+                        }
+
+                        progressDialog12.dismiss();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }
+
+
+        //Get FCM token
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
                     @Override
@@ -117,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         final FloatingActionButton fab = findViewById(R.id.newOrderFAB);
+        fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,8 +247,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_recent_orders,
-                R.id.nav_my_orders, R.id.nav_invites, R.id.nav_my_profile)
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_sales, R.id.nav_recent_orders,
+                R.id.nav_my_orders, R.id.nav_my_profile)
                 .setDrawerLayout(drawer)
                 .build();
         final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -154,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.getValue() != null) {
-                        Customer data= dataSnapshot.getValue(Customer.class);
+                        Customer data = dataSnapshot.getValue(Customer.class);
                         TextView userName = (TextView) header.findViewById(R.id.nav_header_userName);
                         userName.setText(data.getName());
                         TextView userPhone = (TextView) header.findViewById(R.id.nav_header_userPhone);
@@ -183,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("RestrictedApi")
             @Override
             public void run() {
-                if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("recent orders")) {
+              /*  if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("recent orders")) {
                     fab.setVisibility(View.VISIBLE);
                 } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my orders")) {
                     fab.setVisibility(View.VISIBLE);
@@ -191,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
                     fab.setVisibility(View.GONE);
                 } else if (navController.getCurrentDestination().getLabel().toString().equalsIgnoreCase("my profile")) {
                     fab.setVisibility(View.GONE);
-                }
+                }*/
                 handler.postDelayed(this, minutes);
 
             }

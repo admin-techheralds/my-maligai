@@ -95,8 +95,12 @@ public class LoginActivity extends AppCompatActivity {
         user = firebaseAuth.getCurrentUser();
 
         if (user != null) {
-            if (!user.getPhoneNumber().equals("")) {
+            if (!user.getDisplayName().equals("")) {
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Intent intent = new Intent(LoginActivity.this, SetupActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -222,8 +226,7 @@ public class LoginActivity extends AppCompatActivity {
                                         .setMessage("Your account is disabled.Please contact the admin to enable it!")
                                         .setPositiveButton("Ok", null).show();
                             }
-                        }
-                        else {
+                        } else {
                             Intent intent = new Intent(LoginActivity.this, SetupActivity.class);
                             startActivity(intent);
                         }

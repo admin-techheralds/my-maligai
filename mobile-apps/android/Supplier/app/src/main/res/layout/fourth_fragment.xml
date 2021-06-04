@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="100dp"
+    tools:context=".FourthFragment">
+
+    <TableLayout
+        android:id="@+id/table"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:visibility="visible"
+        android:stretchColumns="*">
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/tableTxt1"
+                android:padding="3dip"
+                android:textStyle="bold"
+                android:text="Item Name" />
+
+            <TextView
+                android:id="@+id/tableTxt2"
+                android:padding="3dip"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:text="Avail. Quantity" />
+
+            <TextView
+                android:id="@+id/tableTxt3"
+                android:padding="3dip"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:text="Ord. Quantity" />
+        </TableRow>
+
+    </TableLayout>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="40dp"
+        android:dividerHeight="0dp" />
+
+    <TextView
+        android:id="@+id/noDemandsText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="No orders"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</FrameLayout>

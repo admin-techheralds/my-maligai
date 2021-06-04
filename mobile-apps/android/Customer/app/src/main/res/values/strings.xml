@@ -11,5 +11,7 @@
     <string name="menu_home">My Orders</string>
     <string name="menu_gallery">Invites</string>
     <string name="menu_slideshow">My Profile</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

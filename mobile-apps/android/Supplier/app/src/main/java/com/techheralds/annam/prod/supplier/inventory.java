@@ -2,7 +2,7 @@ package com.techheralds.annam.prod.supplier;
 
 public class inventory {
     String name;
-    int quantity_type;
+    Long quantity_type;
     String img;
     float price;
     int active;
@@ -19,7 +19,7 @@ public class inventory {
     public inventory() {
     }
 
-    public inventory(String name, int quantity_type, String img, float price, int active, String attr1, String attr2, String attr3, String bulk_import_id, long created_date, String created_mode, int in_stock, String sku, String searchname) {
+    public inventory(String name, Long quantity_type, String img, float price, int active, String attr1, String attr2, String attr3, String bulk_import_id, long created_date, String created_mode, int in_stock, String sku, String searchname) {
         this.name = name;
         this.quantity_type = quantity_type;
         this.img = img;
@@ -44,11 +44,11 @@ public class inventory {
         this.name = name;
     }
 
-    public int getQuantity_type() {
+    public Long getQuantity_type() {
         return quantity_type;
     }
 
-    public void setQuantity_type(int quantity_type) {
+    public void setQuantity_type(Long quantity_type) {
         this.quantity_type = quantity_type;
     }
 

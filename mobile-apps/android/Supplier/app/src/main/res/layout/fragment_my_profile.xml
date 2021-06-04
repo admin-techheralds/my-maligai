@@ -48,6 +48,7 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/upiHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
@@ -94,6 +95,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/usersLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
@@ -112,6 +114,12 @@
             android:layout_height="wrap_content"
             android:text="List User" />
 
+        <Button
+            android:id="@+id/inventoryBtn"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inventory" />
     </LinearLayout>
 
     <TextView

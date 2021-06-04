@@ -6,4 +6,9 @@
         android:orderInCategory="100"
         android:title="Logout"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/versionName"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        android:title="Version 5.0.0" />
 </menu>

@@ -1,4 +1,4 @@
-package com.techheralds.mymaligai.prod.customer.ui.my_profile;
+package com.techheralds.annam.prod.customer.ui.my_profile;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -29,7 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
-import com.techheralds.mymaligai.prod.customer.R;
+import com.techheralds.annam.prod.customer.R;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
