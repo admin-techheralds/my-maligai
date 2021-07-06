@@ -58,6 +58,7 @@ public class ThirdFragment extends Fragment {
     ArrayList<String> userPhoneNumbers;
     ArrayList<String> userDps;
     String key;
+    ImageButton refreshBtn;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -136,6 +137,24 @@ public class ThirdFragment extends Fragment {
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+
+            // Refresh tab data:
+
+       /*     if(getFragmentManager() != null) {
+
+                getFragmentManager()
+                        .beginTransaction()
+                        .detach(this)
+                        .attach(this)
+                        .commit();
+            }*/
+        }
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
     }
@@ -209,14 +228,17 @@ public class ThirdFragment extends Fragment {
                 userTypeText.setText("Consumer");
                 demandStatus.setText(capitalize(demands.get(position).getStatus()));
                 demandPlacedTime.setText(demands.get(position).getTimeCreated());
-                itemCount.setText(demands.get(position).getDemandList().size() > 1 ? demands.get(position).getDemandList().size() + " items" : demands.get(position).getDemandList().size() + " item");
-
+                if (demands.get(position).getDemandList() != null) {
+                    itemCount.setText(demands.get(position).getDemandList().size() > 1 ? demands.get(position).getDemandList().size() + " items" : demands.get(position).getDemandList().size() + " item");
+                } else {
+                    itemCount.setText("0 items");
+                }
                 if (userNames.get(position) == null) {
                     firebaseDatabase.getReference().child("customers/" + demands.get(position).getConsumer() + "/name").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             userNames.set(position, dataSnapshot.getValue().toString());
-                            name.setText(dataSnapshot.getValue().toString());
+                            name.setText(capitalize(dataSnapshot.getValue().toString()));
                         }
 
                         @Override
@@ -276,11 +298,14 @@ public class ThirdFragment extends Fragment {
 
                 final StringBuilder stringBuilder = new StringBuilder();
 
-                for (Map<String, Object> item : demands.get(position).getDemandList()) {
-                    String iname = item.get("name").toString();
-                    String quantity = item.get("quantity").toString();
-                    stringBuilder.append(iname + "(" + quantity + ") ");
+                if (demands.get(position).getDemandList() != null) {
+                    for (Map<String, Object> item : demands.get(position).getDemandList()) {
+                        String iname = item.get("name").toString();
+                        String quantity = item.get("quantity").toString();
+                        stringBuilder.append(iname + "(" + quantity + ") ");
+                    }
                 }
+
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {

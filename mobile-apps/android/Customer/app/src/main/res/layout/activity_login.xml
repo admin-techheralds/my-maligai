@@ -17,7 +17,7 @@
         android:layout_height="75dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="100dp"
-        android:src="@drawable/mymaligai" />
+        android:src="@drawable/c" />
 
     <TextView
         android:layout_width="match_parent"

@@ -8,6 +8,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -28,7 +29,7 @@ import java.util.Calendar;
 public class OrderMngActivity extends AppCompatActivity {
     String key, name, desc, startDate, endDate, status;
     TextView titleTxt;
-    ImageButton backBtn;
+    ImageButton backBtn, refreshBtn;
     int mDay, mMonth, mYear, mHour, mMinute;
     Calendar c;
     BottomSheetDialog editBottomSheetDialog;
@@ -52,6 +53,7 @@ public class OrderMngActivity extends AppCompatActivity {
 
         titleTxt = findViewById(R.id.title);
         backBtn = findViewById(R.id.backBtn);
+        refreshBtn = findViewById(R.id.refreshBtn);
 
         Intent i = getIntent();
         key = i.getExtras().getString("key");
@@ -69,5 +71,6 @@ public class OrderMngActivity extends AppCompatActivity {
                 finish();
             }
         });
+
     }
 }

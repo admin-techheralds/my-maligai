@@ -217,7 +217,12 @@ public class DemandViewActivity extends AppCompatActivity {
         phoneNumberText.setText(phoneNumber);
         createdOnText.setText(createdOn);
         addressText.setText(address);
-        totalItemstext.setText(demandList.size() == 1 ? demandList.size() + " Item" : demandList.size() + " Items");
+        if (demandList != null) {
+            totalItemstext.setText(demandList.size() == 1 ? demandList.size() + " Item" : demandList.size() + " Items");
+        } else {
+            totalItemstext.setText("0 Items");
+        }
+
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
 
         if (payment_mode != null) {
@@ -274,22 +279,26 @@ public class DemandViewActivity extends AppCompatActivity {
         viewOrdersBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(DemandViewActivity.this);
-                bottomSheetDialog.setContentView(R.layout.demand_item_sheet);
-                TextView header, priceText;
-                ListView listView;
+                if (demandList != null) {
+                    BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(DemandViewActivity.this);
+                    bottomSheetDialog.setContentView(R.layout.demand_item_sheet);
+                    TextView header, priceText;
+                    ListView listView;
 
-                header = bottomSheetDialog.findViewById(R.id.header);
-                header.setText("Demanded Items");
+                    header = bottomSheetDialog.findViewById(R.id.header);
+                    header.setText("Demanded Items");
 
-                priceText = bottomSheetDialog.findViewById(R.id.totalPrice);
-                priceText.setVisibility(View.GONE);
+                    priceText = bottomSheetDialog.findViewById(R.id.totalPrice);
+                    priceText.setVisibility(View.GONE);
 
-                listView = bottomSheetDialog.findViewById(R.id.itemsListView);
-                adapterList = new itemsAdapterList(DemandViewActivity.this, demandList);
-                listView.setAdapter(adapterList);
+                    listView = bottomSheetDialog.findViewById(R.id.itemsListView);
+                    adapterList = new itemsAdapterList(DemandViewActivity.this, demandList);
+                    listView.setAdapter(adapterList);
 
-                bottomSheetDialog.show();
+                    bottomSheetDialog.show();
+                } else {
+                    Toast.makeText(DemandViewActivity.this, "No Items to Show", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -902,36 +911,19 @@ public class DemandViewActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     if (items.get(position).get("sku").toString().startsWith("bundle")) {
-                        String bundleIndex = items.get(position).get("sku").toString().split("_")[1];
 
-                        final ProgressDialog progressDialog = ProgressDialog.show(DemandViewActivity.this, null, "Please wait...");
+                        ArrayList<Map<String, Object>> data = (ArrayList<Map<String, Object>>) items.get(position).get("items");
 
-                        firebaseDatabase.getReference().child("sales/" + supplier + "/" + saleId + "/bundles/" + bundleIndex + "/items").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.getValue() != null) {
-                                    ArrayList<Map<String, Object>> data = (ArrayList<Map<String, Object>>) dataSnapshot.getValue();
+                        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(DemandViewActivity.this);
+                        bottomSheetDialog.setContentView(R.layout.view_bundle_sheet);
 
-                                    BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(DemandViewActivity.this);
-                                    bottomSheetDialog.setContentView(R.layout.view_bundle_sheet);
+                        TextView bundleName = bottomSheetDialog.findViewById(R.id.bundleName);
+                        ListView listView = bottomSheetDialog.findViewById(R.id.listView);
+                        bundleName.setText(items.get(position).get("name").toString());
 
-                                    TextView bundleName = bottomSheetDialog.findViewById(R.id.bundleName);
-                                    ListView listView = bottomSheetDialog.findViewById(R.id.listView);
-                                    bundleName.setText(items.get(position).get("name").toString());
-
-                                    viewBundleItemsAdapter = new viewBundleItemsAdapter(DemandViewActivity.this, data);
-                                    listView.setAdapter(viewBundleItemsAdapter);
-                                    progressDialog.dismiss();
-                                    bottomSheetDialog.show();
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                            }
-                        });
+                        viewBundleItemsAdapter = new viewBundleItemsAdapter(DemandViewActivity.this, data);
+                        listView.setAdapter(viewBundleItemsAdapter);
+                        bottomSheetDialog.show();
                     }
                 }
             });

@@ -10,6 +10,7 @@
     tools:context=".CreateSaleActivity">
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -24,6 +25,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -44,6 +46,7 @@
         android:orientation="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -59,6 +62,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -72,14 +76,56 @@
                 android:hint="End Date"
                 tools:ignore="Deprecated" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Sale Visibility"
+            android:textStyle="bold" />
+
+        <RadioGroup
+
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:fontFamily="@font/noto_sans"
+                android:text="Visible to everyone"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioButton2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_sans"
+                android:text="Visible to specific customers"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/manageCustomers"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:text="Manage Customers"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <LinearLayout
+        android:layout_marginTop="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-
 
         <Button
             android:id="@+id/cancelBtn"
@@ -97,12 +143,12 @@
     </LinearLayout>
 
     <Button
-        android:visibility="gone"
         android:id="@+id/viewBundlesBtn"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="View Bundles" />
+        android:text="View Bundles"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/header"
@@ -111,12 +157,12 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:text="Sale Items"
-        android:visibility="gone"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <ListView
         android:id="@+id/listView"
-        android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 </LinearLayout>

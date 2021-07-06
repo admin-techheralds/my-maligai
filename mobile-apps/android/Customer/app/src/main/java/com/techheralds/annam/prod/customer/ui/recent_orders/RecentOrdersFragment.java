@@ -145,8 +145,11 @@ public class RecentOrdersFragment extends Fragment {
 
                 demandStatus.setText(capitalize(demands.get(position).getStatus()));
                 demandPlacedTime.setText(demands.get(position).getTimeCreated());
-                itemCount.setText(demands.get(position).getDemandList().size() > 1 ? demands.get(position).getDemandList().size() + " items" : demands.get(position).getDemandList().size() + " item");
-
+                if (demands.get(position).getDemandList() != null) {
+                    itemCount.setText(demands.get(position).getDemandList().size() > 1 ? demands.get(position).getDemandList().size() + " items" : demands.get(position).getDemandList().size() + " item");
+                } else {
+                    itemCount.setText("0 items");
+                }
                 if (userNames.get(position) == null) {
                     firebaseDatabase.getReference().child("sales/" + demands.get(position).getSupplier() + "/" + demands.get(position).getSaleId() + "/name").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -165,14 +168,16 @@ public class RecentOrdersFragment extends Fragment {
                 }
 
 
-
                 final StringBuilder stringBuilder = new StringBuilder();
 
-                for (Map<String, Object> item : demands.get(position).getDemandList()) {
-                    String iname = item.get("name").toString();
-                    String quantity = item.get("quantity").toString();
-                    stringBuilder.append(iname + "(" + quantity + ") ");
+                if (demands.get(position).getDemandList() != null) {
+                    for (Map<String, Object> item : demands.get(position).getDemandList()) {
+                        String iname = item.get("name").toString();
+                        String quantity = item.get("quantity").toString();
+                        stringBuilder.append(iname + "(" + quantity + ") ");
+                    }
                 }
+
                 view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -188,18 +193,19 @@ public class RecentOrdersFragment extends Fragment {
                             b.putDouble("price", demands.get(position).getPrice());
                             intent.putExtras(b);
                             intent.putExtra("status", demands.get(position).getStatus());
-                            intent.putExtra("address",demands.get(position).getAddress());
+                            intent.putExtra("address", demands.get(position).getAddress());
                             intent.putExtra("deliveryTime", demands.get(position).getDeliveryTime());
                             intent.putExtra("createdOn", demands.get(position).getTimeCreated());
                             intent.putExtra("items", stringBuilder.toString());
                             intent.putExtra("key", demands.get(position).getKey());
                             intent.putExtra("paid", demands.get(position).getPaid());
-                            intent.putExtra("payment_mode",demands.get(position).getPayment_mode());
+                            intent.putExtra("payment_mode", demands.get(position).getPayment_mode());
+                            intent.putExtra("saleId", demands.get(position).getSaleId());
+
                             if (demands.get(position).getRejectionReason() != null) {
-                                intent.putExtra("rejectionReason",demands.get(position).getRejectionReason());
-                            }
-                            else {
-                                intent.putExtra("rejectionReason","");
+                                intent.putExtra("rejectionReason", demands.get(position).getRejectionReason());
+                            } else {
+                                intent.putExtra("rejectionReason", "");
                             }
                             startActivity(intent);
                         } else {

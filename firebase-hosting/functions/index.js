@@ -940,34 +940,54 @@ exports.sendNotify = functions.database.ref("demands/{demandId}").onUpdate((snap
 
 
 exports.sendPublishNotify = functions.database.ref("sales/{supplierId}/{saleId}/").onUpdate((snap, context) => {
+  const beforeData = snap.before.val();
   const data = snap.after.val();
   const status = data["status"];
   const name = data["name"];
   const desc = data["desc"];
   const saleId = snap.after.key;
   const supplierId = data["supplier"];
+  const saleType = data["saleType"];
+  const selectedCustomers = data["selectedCustomers"];
 
-  console.log(saleId);
+  if (beforeData["status"] !== "published") {
+    if (status === "published") {
 
-  if (status === "published") {
+      const payload = {
+        notification: {
+          click_action: ".MainActivity",
+          title: name + " is live now",
+          body: desc ? desc : "Place your orders",
+        },
+        data: {
+          saleId: saleId,
+          supplierId: supplierId,
+          typeOfMsg: "sale"
+        }
+      };
 
-    const payload = {
-      notification: {
-        click_action: ".MainActivity",
-        title: name + " is live now",
-        body: desc ? desc : "Place your orders",
-      },
-      data: {
-        saleId: saleId,
-        supplierId: supplierId,
-        typeOfMsg: "sale"
+      if (saleType === 0) {
+        return admin.database().ref('tokens/').once("value", tokenSnap => {
+          var tokens = Object.values(tokenSnap.val());
+
+          return admin.messaging().sendToDevice(tokens, payload);
+        });
       }
-    };
+      else if (saleType === 1) {
+        console.log(selectedCustomers);
+        var tokens = [];
+        selectedCustomers.forEach(customer => {
+          admin.database().ref('tokens/' + customer).once("value", tokenSnap => {
+            if (tokenSnap.val()) {
+              tokens.push(tokenSnap.val());
+            }
+          });
+        });
 
-    return admin.database().ref('tokens/').once("value", tokenSnap => {
-      var tokens = Object.values(tokenSnap.val());
-
-      return admin.messaging().sendToDevice(tokens, payload);
-    });
+          console.log(tokens);
+          return admin.messaging().sendToDevice(tokens, payload);
+        
+      }
+    }
   }
 });

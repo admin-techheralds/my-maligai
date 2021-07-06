@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -9,25 +10,25 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
         versionCode 11
-        versionName "5.0.0"
+        versionName "5.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
-	signingConfigs {
-		release {
-			storeFile file('techheralds.jks')
-			storePassword "techheralds"
-			keyAlias "upload"
-			keyPassword "techheralds123"
-		}
-		debug {
-         //   storeFile file("debug.keystore")
-        }
-	}
-    
-	buildTypes {
+    signingConfigs {
         release {
-			signingConfig signingConfigs.release
+            storeFile file('techheralds.jks')
+            storePassword "techheralds"
+            keyAlias "upload"
+            keyPassword "techheralds123"
+        }
+        debug {
+            //   storeFile file("debug.keystore")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -74,4 +75,5 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.3'
 
     implementation 'com.squareup.okhttp3:okhttp:3.9.1'
+
 }

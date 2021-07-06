@@ -1,54 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="100dp"
     tools:context=".FourthFragment">
 
-    <TableLayout
-        android:id="@+id/table"
+    <LinearLayout
+        android:id="@+id/btnsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/inventorySaleSummaryBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="INVENTORY SALE SUMMARY"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+
+                android:text="Tap to view the details about the inventory sale summary"
+                android:textStyle="bold" />
+
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/orderDetailViewBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="ORDER DETAIL VIEW"
+                android:textColor="#000"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+
+                android:text="Tap to view the order detail view"
+                android:textStyle="bold" />
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/orderDetailViewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/backBtn2"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@color/fui_transparent"
+                android:src="@drawable/back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"
+                android:text="Order Detail View"
+                android:textColor="#000"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dip"
+            android:fillViewport="true"
+            android:scrollbarStyle="outsideInset"
+            android:scrollbars="horizontal|vertical">
+
+            <HorizontalScrollView
+                android:id="@+id/horizontalView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dip"
+                android:scrollbars="horizontal|vertical">
+
+                <TableLayout
+                    android:id="@+id/table2nd"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"></TableLayout>
+            </HorizontalScrollView>
+        </ScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inventorySaleSummaryLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
         android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
-        android:visibility="visible"
-        android:stretchColumns="*">
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/tableTxt1"
-                android:padding="3dip"
-                android:textStyle="bold"
-                android:text="Item Name" />
-
-            <TextView
-                android:id="@+id/tableTxt2"
-                android:padding="3dip"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:text="Avail. Quantity" />
-
-            <TextView
-                android:id="@+id/tableTxt3"
-                android:padding="3dip"
-                android:gravity="center"
-                android:textStyle="bold"
-                android:text="Ord. Quantity" />
-        </TableRow>
-
-    </TableLayout>
-
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="40dp"
-        android:dividerHeight="0dp" />
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/backBtn1"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@color/fui_transparent"
+                android:src="@drawable/back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"
+                android:text="Inventory Sale Summary"
+                android:textColor="#000"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TableLayout
+            android:id="@+id/table"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="*">
+
+            <TableRow>
+
+                <TextView
+                    android:id="@+id/tableTxt1"
+                    android:padding="3dip"
+                    android:text="Item Name"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tableTxt2"
+                    android:gravity="center"
+                    android:padding="3dip"
+                    android:text="Avail. Quantity"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tableTxt3"
+                    android:gravity="center"
+                    android:padding="3dip"
+                    android:text="Ord. Quantity"
+                    android:textStyle="bold" />
+            </TableRow>
+
+        </TableLayout>
+
+        <ListView
+            android:id="@+id/listView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:dividerHeight="0dp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/noDemandsText"
@@ -57,6 +207,15 @@
         android:gravity="center"
         android:text="No orders"
         android:textStyle="bold"
+        android:visibility="gone" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/noramlizeBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="10dp"
+        android:src="@drawable/swap"
         android:visibility="gone" />
 
 </FrameLayout>

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.icu.text.SimpleDateFormat;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -12,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +36,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -71,6 +77,7 @@ public class SalesFragment extends Fragment {
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), null, "Loading Sales...");
 
         firebaseDatabase.getReference().child("sales/").addListenerForSingleValueEvent(new ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
@@ -83,8 +90,41 @@ public class SalesFragment extends Fragment {
                             sale.put("supplierUid", ds.getKey());
                             sale.putAll((Map<? extends String, ?>) ds1.getValue());
 
+                            Date date1 = null;
+                            Date date2 = null;
+
+                            try {
+                                //   date1 = new Date("dd/MM/yyyy, HH:mm a");
+                                date2 = new SimpleDateFormat("dd/MM/yyyy, hh:mm a").parse(sale.get("endDate").toString());
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+
+                            Long t1 = Calendar.getInstance().getTimeInMillis();
+                            Long t2 = date2.getTime();
+
+                            // Log.d("myTag", "SALE NAME "+sale.get("name").toString());
+                            //    Log.d("myTag", "CURR TIME & DATE " + Calendar.getInstance().getTime());
+                            //   Log.d("myTag", "CURR MILLIS " + t1);
+                            //   Log.d("myTag", "END TIME & DATE " + date2);
+                            // Log.d("myTag", "END MILLIS " + t2);
+                            // Log.d("myTag", "-------------------------------------------------------------------------------------");
+
                             if (sale.get("status").toString().equalsIgnoreCase("published")) {
-                                sales.add(sale);
+                                if (!(boolean) sale.get("hide")) {
+                                    if ((Long) sale.get("saleType") == 0) {
+                                        if (t1 < t2) {
+                                            sales.add(sale);
+                                        }
+                                    } else {
+                                        if (((ArrayList<String>) sale.get("selectedCustomers")).contains(firebaseUser.getUid())) {
+                                            Log.d("myTag",firebaseUser.getUid());
+                                            if (t1 < t2) {
+                                                sales.add(sale);
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             salesAdapterList = new salesAdapterList(getContext(), sales);

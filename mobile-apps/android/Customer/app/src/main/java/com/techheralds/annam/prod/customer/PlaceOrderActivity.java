@@ -196,7 +196,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
         bottomSheetDialog.setContentView(R.layout.demand_item_sheet);
 
         // Big in grams
-        unitsArr[0].add("250g");
+        //   unitsArr[0].add("250g");
         unitsArr[0].add("500g");
         unitsArr[0].add("1kg");
         unitsArr[0].add("2kg");
@@ -229,7 +229,7 @@ public class PlaceOrderActivity extends AppCompatActivity {
         unitsArr[4].add("20pcs");
 
         // multuply factor grams
-        multiplyFactorArr[0].add(0.25);
+        // multiplyFactorArr[0].add(0.25);
         multiplyFactorArr[0].add(0.5);
         multiplyFactorArr[0].add(1.0);
         multiplyFactorArr[0].add(2.0);
@@ -974,6 +974,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
                 final Spinner quantitySpinner = view.findViewById(R.id.itemquantitySpinner);
                 final double[] currItemPrice = {0};
                 final LinearLayout counterLayout = view.findViewById(R.id.counterLayout);
+                final LinearLayout ll1 = view.findViewById(R.id.ll1);
+                final Button addBtn = view.findViewById(R.id.addBtn);
 
                 //Bundle Items
                 if (inventories.get(position).get("isBundle") != null) {
@@ -1006,6 +1008,23 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(PlaceOrderActivity.this, R.layout.support_simple_spinner_dropdown_item, spinnerArr);
                     quantitySpinner.setAdapter(adapter);
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("name", inventories.get(position).get("name").toString());
+                    data.put("quantity", quantitySpinner.getSelectedItem().toString());
+                    data.put("img", inventories.get(position).get("img").toString());
+                    data.put("sku", inventories.get(position).get("sku").toString());
+                    data.put("items",bundleItems);
+                    int i = arrtoFindIndex.indexOf(data);
+                    if (i > -1) {
+                        countText.setText(demandsArr.get(i).get("count").toString());
+                        ll1.setVisibility(View.VISIBLE);
+                        addBtn.setVisibility(View.GONE);
+                    }
+                    else {
+                        ll1.setVisibility(View.GONE);
+                        addBtn.setVisibility(View.VISIBLE);
+                    }
 
                     quantitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
@@ -1056,7 +1075,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                                 if (i == -1) {
                                     countText.setText("0");
                                     counterLayout.setBackgroundResource(R.drawable.border);
+                                    addBtn.setVisibility(View.VISIBLE);
+                                    ll1.setVisibility(View.GONE);
                                 } else {
+                                    addBtn.setVisibility(View.GONE);
+                                    ll1.setVisibility(View.VISIBLE);
                                     countText.setText(demandsArr.get(i).get("count").toString());
                                     counterLayout.setBackgroundResource(R.drawable.green_border);
                                 }
@@ -1079,6 +1102,12 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     int i = arrtoFindIndex.indexOf(data);
                     if (i > -1) {
                         countText.setText(demandsArr.get(i).get("count").toString());
+                        ll1.setVisibility(View.VISIBLE);
+                        addBtn.setVisibility(View.GONE);
+                    }
+                    else {
+                        ll1.setVisibility(View.GONE);
+                        addBtn.setVisibility(View.VISIBLE);
                     }
                 }
 
@@ -1098,6 +1127,52 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     counterLayout.setBackgroundResource(R.drawable.border);
                 }
 
+                addBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Map<String, Object> temp = new HashMap<>();
+                        temp.put("name", inventories.get(position).get("name").toString());
+                        temp.put("quantity", quantitySpinner.getSelectedItem().toString());
+                        temp.put("img", inventories.get(position).get("img").toString());
+                        temp.put("sku", inventories.get(position).get("sku").toString());
+
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("name", inventories.get(position).get("name").toString());
+                        data.put("quantity", quantitySpinner.getSelectedItem().toString());
+                        data.put("img", inventories.get(position).get("img").toString());
+                        data.put("sku", inventories.get(position).get("sku").toString());
+
+                        if (inventories.get(position).get("isBundle") != null) {
+                            temp.put("items", inventories.get(position).get("items"));
+                            data.put("items", inventories.get(position).get("items"));
+                        }
+
+                        int count = Integer.parseInt(countText.getText().toString()) + 1;
+
+                        countText.setText(String.valueOf(count));
+
+                        int i = arrtoFindIndex.indexOf(temp);
+
+                        data.put("count", count);
+                        data.put("price", currItemPrice[0] * count);
+                        totalAmount = totalAmount + currItemPrice[0];
+                        if (i == -1) {
+                            demandsArr.add(data);
+                            arrtoFindIndex.add(temp);
+                        } else {
+                            demandsArr.set(i, data);
+                            arrtoFindIndex.set(i, temp);
+                        }
+
+                        counterLayout.setBackgroundResource(R.drawable.green_border);
+
+                        mCartItemCount = demandsArr.size();
+                        setupBadge();
+
+                        addBtn.setVisibility(View.GONE);
+                        ll1.setVisibility(View.VISIBLE);
+                    }
+                });
 
                 addItemBtn.setOnClickListener(new View.OnClickListener() {
                     @SuppressLint("ResourceAsColor")
@@ -1115,6 +1190,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                         data.put("quantity", quantitySpinner.getSelectedItem().toString());
                         data.put("img", inventories.get(position).get("img").toString());
                         data.put("sku", inventories.get(position).get("sku").toString());
+
+                        if (inventories.get(position).get("isBundle") != null) {
+                            temp.put("items", inventories.get(position).get("items"));
+                            data.put("items", inventories.get(position).get("items"));
+                        }
 
                         int count = Integer.parseInt(countText.getText().toString()) + 1;
 
@@ -1158,6 +1238,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                         data.put("img", inventories.get(position).get("img").toString());
                         data.put("sku", inventories.get(position).get("sku").toString());
 
+                        if (inventories.get(position).get("isBundle") != null) {
+                            temp.put("items", inventories.get(position).get("items"));
+                            data.put("items", inventories.get(position).get("items"));
+                        }
+
                         if (Integer.parseInt(countText.getText().toString()) > 0) {
                             int count = Integer.parseInt(countText.getText().toString()) - 1;
 
@@ -1183,6 +1268,8 @@ public class PlaceOrderActivity extends AppCompatActivity {
 
                             if (count == 0) {
                                 counterLayout.setBackgroundResource(R.drawable.border);
+                                addBtn.setVisibility(View.VISIBLE);
+                                ll1.setVisibility(View.GONE);
                             }
                         }
 
@@ -1307,6 +1394,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     data.put("img", items.get(position).get("img"));
                     data.put("sku", items.get(position).get("sku"));
 
+                    if (items.get(position).get("sku").toString().startsWith("bundle")) {
+                        temp.put("items", items.get(position).get("items"));
+                        data.put("items", items.get(position).get("items"));
+                    }
+
                     int count = Integer.parseInt(countText.getText().toString()) + 1;
                     int divider = Integer.parseInt(countText.getText().toString());
 
@@ -1358,6 +1450,11 @@ public class PlaceOrderActivity extends AppCompatActivity {
                     data.put("quantity", items.get(position).get("quantity"));
                     data.put("img", items.get(position).get("img"));
                     data.put("sku", items.get(position).get("sku"));
+
+                    if (items.get(position).get("sku").toString().startsWith("bundle")) {
+                        temp.put("items", items.get(position).get("items"));
+                        data.put("items", items.get(position).get("items"));
+                    }
 
                     if (Integer.parseInt(countText.getText().toString()) > 0) {
                         int count = Integer.parseInt(countText.getText().toString()) - 1;

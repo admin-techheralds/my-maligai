@@ -17,6 +17,7 @@
         android:textStyle="bold" />
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -31,6 +32,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -51,6 +53,7 @@
         android:orientation="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -66,6 +69,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
@@ -79,6 +83,60 @@
                 android:hint="End Date"
                 tools:ignore="Deprecated" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hide Sale"
+            android:layoutDirection="rtl"
+            android:fontFamily="@font/noto_sans"
+            android:textStyle="bold"
+            android:textSize="16dp"
+            android:layout_marginBottom="10dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Sale Visibility"
+            android:textStyle="bold" />
+
+        <RadioGroup
+
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:fontFamily="@font/noto_sans"
+                android:text="Visible to everyone"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioButton2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/noto_sans"
+                android:text="Visible to specific customers"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/manageCustomers"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:text="Manage Customers"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
@@ -87,6 +145,7 @@
         android:orientation="horizontal"
         android:layout_gravity="center"
         android:gravity="center"
+        android:layout_marginTop="15dp"
         >
         <Button
             android:id="@+id/publishBtn"
